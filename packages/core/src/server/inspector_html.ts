@@ -508,6 +508,146 @@ export const INSPECTOR_HTML = `<!DOCTYPE html>
       background: #0b1a20 !important;
     }
 
+    /* View Switcher Tabs */
+    .view-switch-tabs {
+      display: flex;
+      background: #090d16;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .tab-btn:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.05);
+      transform: none;
+    }
+    .tab-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+    .fps-pill {
+      font-size: 0.7rem;
+      background: rgba(16, 185, 129, 0.12);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Live Screencast Viewport Stage */
+    .live-viewport-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #060911;
+      position: relative;
+      overflow: hidden;
+      min-height: 0;
+    }
+    .viewport-stage {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      user-select: none;
+      background: radial-gradient(circle at center, #0f172a 0%, #060911 100%);
+      cursor: crosshair;
+    }
+    #screencastImg {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      border-radius: 4px;
+      display: block;
+    }
+    .live-placeholder {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-family: 'Outfit', sans-serif;
+      background: rgba(6, 9, 17, 0.85);
+      backdrop-filter: blur(4px);
+    }
+    .viewport-footer {
+      padding: 6px 14px;
+      background: #090d16;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--text-subtle);
+      font-family: 'JetBrains Mono', monospace;
+      flex-shrink: 0;
+    }
+
+    /* Interactive Overlays on Viewport */
+    .viewport-hover-box {
+      position: absolute;
+      pointer-events: none;
+      border: 2px solid #38bdf8;
+      background: rgba(56, 189, 248, 0.15);
+      border-radius: 3px;
+      display: none;
+      z-index: 20;
+      transition: all 0.05s ease-out;
+    }
+    .hover-badge {
+      position: absolute;
+      bottom: calc(100% + 4px);
+      left: 0;
+      background: #0284c7;
+      color: white;
+      font-size: 0.65rem;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'JetBrains Mono', monospace;
+      white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+    .click-ripple {
+      position: absolute;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 3px solid #10b981;
+      background: rgba(16, 185, 129, 0.35);
+      transform: translate(-50%, -50%) scale(0.2);
+      pointer-events: none;
+      z-index: 30;
+      opacity: 0;
+    }
+    .click-ripple.animate {
+      animation: rippleEffect 0.6s ease-out forwards;
+    }
+    @keyframes rippleEffect {
+      0% { opacity: 1; transform: translate(-50%, -50%) scale(0.3); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(2.2); }
+    }
+
     /* Modal / Drawer for Page Summary & Links */
     .modal-overlay {
       display: none;
@@ -632,19 +772,43 @@ export const INSPECTOR_HTML = `<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- Center Column: Semantic DOM JSON -->
-    <div class="panel">
+    <!-- Center Column: Visual Live View & Semantic DOM -->
+    <div class="panel" style="position: relative;">
       <div class="panel-header">
-        <div class="panel-title">
-          <span>Semantic DOM Tree (Pruned)</span>
+        <div class="panel-title" style="gap: 10px;">
+          <div class="view-switch-tabs">
+            <button id="tabLive" class="tab-btn active" onclick="switchCenterView('live')">🖥️ Live View</button>
+            <button id="tabDom" class="tab-btn" onclick="switchCenterView('dom')">🌳 Semantic DOM Tree</button>
+            <button id="tabSplit" class="tab-btn" onclick="switchCenterView('split')">🌓 Split</button>
+          </div>
+          <span id="screencastFpsBadge" class="fps-pill">🟢 Live Stream</span>
         </div>
         <div style="display: flex; gap: 6px;">
           <button class="btn-secondary" style="padding: 4px 10px; font-size: 0.75rem;" onclick="copyJson()">📋 Copy JSON</button>
           <button class="btn-secondary" style="padding: 4px 10px; font-size: 0.75rem;" onclick="refreshDOM()">Refresh</button>
         </div>
       </div>
-      <div class="panel-content">
-        <pre id="jsonTree">// Semantic DOM JSON will render here...</pre>
+      <div class="panel-content" id="centerPanelContent" style="padding: 0; display: flex; flex-direction: column; overflow: hidden; position: relative;">
+        <!-- Live Viewport Container -->
+        <div id="liveViewportWrap" class="live-viewport-wrap">
+          <div class="viewport-stage" id="viewportStage" onclick="onViewportClick(event)" onmousemove="onViewportHover(event)" onmouseleave="onViewportLeave()">
+            <img id="screencastImg" alt="Live browser screencast" />
+            <div id="hoverBox" class="viewport-hover-box"></div>
+            <div id="clickRipple" class="click-ripple"></div>
+            <div id="livePlaceholder" class="live-placeholder">
+              <span>⏳ Initializing live browser stream...</span>
+            </div>
+          </div>
+          <div class="viewport-footer">
+            <span id="viewportCoordText">Click any element on screen to target</span>
+            <span id="viewportResolutionText">1280 × 720</span>
+          </div>
+        </div>
+
+        <!-- DOM Tree View Container -->
+        <div id="domTreeWrap" class="dom-tree-wrap" style="display: none; padding: 12px; flex: 1; overflow: auto;">
+          <pre id="jsonTree">// Semantic DOM JSON will render here...</pre>
+        </div>
       </div>
     </div>
 
@@ -749,6 +913,7 @@ export const INSPECTOR_HTML = `<!DOCTYPE html>
         // Create initial page
         sendRPC('newPage', {}, (res) => {
           activePageId = res.pageId;
+          startScreencast();
           navigate();
         });
       };
@@ -772,6 +937,9 @@ export const INSPECTOR_HTML = `<!DOCTYPE html>
           if (msg.method === 'event.agentStep') {
             renderAgentStep(msg.params.step);
           }
+          if (msg.method === 'event.screencastFrame') {
+            renderScreencastFrame(msg.params.data, msg.params.metadata);
+          }
         } catch (_) {}
       };
     }
@@ -783,6 +951,195 @@ export const INSPECTOR_HTML = `<!DOCTYPE html>
       rpcId++;
       if (callback) callbacks[rpcId] = callback;
       ws.send(JSON.stringify({ jsonrpc: '2.0', id: rpcId, method, params }));
+    }
+
+    /* Screencast & Viewport Controls */
+    let frameCount = 0;
+    let lastFpsTime = Date.now();
+    let currentFps = 0;
+
+    function startScreencast() {
+      if (!activePageId) return;
+      sendRPC('startScreencast', { pageId: activePageId }, () => {});
+    }
+
+    function renderScreencastFrame(data, metadata) {
+      if (!data) return;
+      const img = document.getElementById('screencastImg');
+      if (img) img.src = 'data:image/jpeg;base64,' + data;
+
+      const placeholder = document.getElementById('livePlaceholder');
+      if (placeholder && placeholder.style.display !== 'none') {
+        placeholder.style.display = 'none';
+      }
+
+      frameCount++;
+      const now = Date.now();
+      if (now - lastFpsTime >= 1000) {
+        currentFps = Math.round((frameCount * 1000) / (now - lastFpsTime));
+        frameCount = 0;
+        lastFpsTime = now;
+        const fpsBadge = document.getElementById('screencastFpsBadge');
+        if (fpsBadge) fpsBadge.innerText = '🟢 Live (' + currentFps + ' FPS)';
+      }
+
+      if (metadata && metadata.deviceWidth) {
+        const resText = document.getElementById('viewportResolutionText');
+        if (resText) resText.innerText = metadata.deviceWidth + ' × ' + metadata.deviceHeight;
+      }
+    }
+
+    function switchCenterView(mode) {
+      document.querySelectorAll('.view-switch-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+      const liveWrap = document.getElementById('liveViewportWrap');
+      const domWrap = document.getElementById('domTreeWrap');
+
+      if (mode === 'live') {
+        document.getElementById('tabLive').classList.add('active');
+        liveWrap.style.display = 'flex';
+        liveWrap.style.flex = '1';
+        domWrap.style.display = 'none';
+      } else if (mode === 'dom') {
+        document.getElementById('tabDom').classList.add('active');
+        liveWrap.style.display = 'none';
+        domWrap.style.display = 'block';
+        domWrap.style.flex = '1';
+      } else if (mode === 'split') {
+        document.getElementById('tabSplit').classList.add('active');
+        liveWrap.style.display = 'flex';
+        liveWrap.style.flex = '1';
+        domWrap.style.display = 'block';
+        domWrap.style.flex = '1';
+        domWrap.style.borderTop = '1px solid var(--border)';
+      }
+    }
+
+    function onViewportHover(event) {
+      const img = document.getElementById('screencastImg');
+      const stage = document.getElementById('viewportStage');
+      if (!img || !img.naturalWidth || img.clientWidth === 0) return;
+
+      const imgRect = img.getBoundingClientRect();
+      const stageRect = stage.getBoundingClientRect();
+
+      const imgX = event.clientX - imgRect.left;
+      const imgY = event.clientY - imgRect.top;
+
+      if (imgX < 0 || imgX > imgRect.width || imgY < 0 || imgY > imgRect.height) {
+        onViewportLeave();
+        return;
+      }
+
+      const scaleX = (img.naturalWidth || 1280) / imgRect.width;
+      const scaleY = (img.naturalHeight || 720) / imgRect.height;
+      const docX = imgX * scaleX;
+      const docY = imgY * scaleY;
+
+      let found = null;
+      let minArea = Infinity;
+      for (const node of currentNodes) {
+        if (!node.bbox) continue;
+        const { x, y, width, height } = node.bbox;
+        if (docX >= x && docX <= x + width && docY >= y && docY <= y + height) {
+          const area = width * height;
+          if (area < minArea && (node.clickable || node.role === 'button' || node.role === 'textbox' || node.role === 'link')) {
+            minArea = area;
+            found = node;
+          }
+        }
+      }
+
+      const box = document.getElementById('hoverBox');
+      const coordText = document.getElementById('viewportCoordText');
+
+      if (found) {
+        box.style.display = 'block';
+        box.style.left = (imgRect.left - stageRect.left + (found.bbox.x / scaleX)) + 'px';
+        box.style.top = (imgRect.top - stageRect.top + (found.bbox.y / scaleY)) + 'px';
+        box.style.width = (found.bbox.width / scaleX) + 'px';
+        box.style.height = (found.bbox.height / scaleY) + 'px';
+        box.innerHTML = '<span class="hover-badge">' + found.id + '</span>';
+        coordText.innerText = '🎯 Target: ' + found.id + ' (' + found.role + ')';
+      } else {
+        box.style.display = 'none';
+        coordText.innerText = 'X: ' + Math.round(docX) + ', Y: ' + Math.round(docY);
+      }
+    }
+
+    function onViewportLeave() {
+      const box = document.getElementById('hoverBox');
+      if (box) box.style.display = 'none';
+      const coordText = document.getElementById('viewportCoordText');
+      if (coordText) coordText.innerText = 'Click any element on screen to target';
+    }
+
+    function onViewportClick(event) {
+      const img = document.getElementById('screencastImg');
+      const stage = document.getElementById('viewportStage');
+      if (!img || !img.naturalWidth || img.clientWidth === 0) return;
+
+      const imgRect = img.getBoundingClientRect();
+      const stageRect = stage.getBoundingClientRect();
+
+      const imgX = event.clientX - imgRect.left;
+      const imgY = event.clientY - imgRect.top;
+
+      if (imgX < 0 || imgX > imgRect.width || imgY < 0 || imgY > imgRect.height) return;
+
+      const scaleX = (img.naturalWidth || 1280) / imgRect.width;
+      const scaleY = (img.naturalHeight || 720) / imgRect.height;
+      const docX = imgX * scaleX;
+      const docY = imgY * scaleY;
+
+      triggerRipple(event.clientX - stageRect.left, event.clientY - stageRect.top);
+
+      let found = null;
+      let minArea = Infinity;
+      for (const node of currentNodes) {
+        if (!node.bbox) continue;
+        const { x, y, width, height } = node.bbox;
+        if (docX >= x && docX <= x + width && docY >= y && docY <= y + height) {
+          const area = width * height;
+          if (area < minArea && (node.clickable || node.role === 'button' || node.role === 'textbox' || node.role === 'link')) {
+            minArea = area;
+            found = node;
+          }
+        }
+      }
+
+      if (found) {
+        selectTarget(found.id);
+      }
+    }
+
+    function triggerRipple(x, y) {
+      const ripple = document.getElementById('clickRipple');
+      if (!ripple) return;
+      ripple.style.left = x + 'px';
+      ripple.style.top = y + 'px';
+      ripple.classList.remove('animate');
+      void ripple.offsetWidth;
+      ripple.classList.add('animate');
+    }
+
+    function triggerActionVisual(targetId) {
+      if (!targetId) return;
+      const node = currentNodes.find(n => n.id === targetId);
+      if (!node || !node.bbox) return;
+
+      const img = document.getElementById('screencastImg');
+      const stage = document.getElementById('viewportStage');
+      if (!img || !img.naturalWidth || img.clientWidth === 0) return;
+
+      const imgRect = img.getBoundingClientRect();
+      const stageRect = stage.getBoundingClientRect();
+      const scaleX = (img.naturalWidth || 1280) / imgRect.width;
+      const scaleY = (img.naturalHeight || 720) / imgRect.height;
+
+      const centerX = imgRect.left - stageRect.left + (node.bbox.x + node.bbox.width / 2) / scaleX;
+      const centerY = imgRect.top - stageRect.top + (node.bbox.y + node.bbox.height / 2) / scaleY;
+
+      triggerRipple(centerX, centerY);
     }
 
     function navigate() {
@@ -936,6 +1293,7 @@ export const INSPECTOR_HTML = `<!DOCTYPE html>
     function executeClick() {
       const target = document.getElementById('actionTarget').value.trim();
       if (!target || !activePageId) return;
+      triggerActionVisual(target);
       sendRPC('click', { pageId: activePageId, target }, (res) => {
         if (res && res.diff) renderDiff(res.diff);
       });
@@ -945,6 +1303,7 @@ export const INSPECTOR_HTML = `<!DOCTYPE html>
       const target = document.getElementById('actionTarget').value.trim();
       const text = document.getElementById('actionText').value;
       if (!target || !activePageId) return;
+      triggerActionVisual(target);
       sendRPC('fill', { pageId: activePageId, target, text }, (res) => {
         if (res && res.diff) renderDiff(res.diff);
       });
@@ -953,6 +1312,7 @@ export const INSPECTOR_HTML = `<!DOCTYPE html>
     function executeHover() {
       const target = document.getElementById('actionTarget').value.trim();
       if (!target || !activePageId) return;
+      triggerActionVisual(target);
       sendRPC('hover', { pageId: activePageId, target }, (res) => {
         if (res && res.diff) renderDiff(res.diff);
       });
@@ -975,6 +1335,9 @@ export const INSPECTOR_HTML = `<!DOCTYPE html>
       const entry = document.createElement('div');
       entry.className = 'diff-entry diff-entry-agent';
       const action = step.action || {};
+      if (action.target) {
+        triggerActionVisual(action.target);
+      }
       const targetStr = action.target ? ' -> <b style="color:#f8fafc;">' + action.target + '</b>' : '';
       const reasoningStr = action.reasoning ? '<div style="color:#94a3b8; font-size:0.75rem; margin-top:4px;">💭 ' + action.reasoning + '</div>' : '';
       const diffStr = step.diffSummary ? '<div style="color:#34d399; font-size:0.75rem; margin-top:4px;">⚡ ' + step.diffSummary + '</div>' : '';

@@ -69,6 +69,8 @@ export class SentientPage {
   private intentEngine: IntentEngine;
   private lastSnapshot: SemanticSnapshot | null = null;
   public journal: ActionJournal;
+  private screencastListener: ((params: any) => void) | null = null;
+  public isScreencasting = false;
 
   constructor(
     public page: Page,
@@ -319,10 +321,51 @@ export class SentientPage {
   }
 
   /**
+   * Starts real-time visual screencasting via CDP Page.startScreencast.
+   */
+  async startScreencast(onFrame: (data: string, metadata: any) => void): Promise<void> {
+    if (this.isScreencasting) return;
+    this.isScreencasting = true;
+
+    this.screencastListener = async (params: { data: string; metadata: any; sessionId: number }) => {
+      try {
+        await this.cdp.send('Page.screencastFrameAck', { sessionId: params.sessionId });
+      } catch (_) {}
+      onFrame(params.data, params.metadata);
+    };
+
+    this.cdp.on('Page.screencastFrame', this.screencastListener);
+
+    await this.cdp.send('Page.startScreencast', {
+      format: 'jpeg',
+      quality: 70,
+      maxWidth: 1280,
+      maxHeight: 720,
+      everyNthFrame: 1
+    }).catch(() => {});
+  }
+
+  /**
+   * Stops real-time screencasting.
+   */
+  async stopScreencast(): Promise<void> {
+    if (!this.isScreencasting) return;
+    this.isScreencasting = false;
+
+    if (this.screencastListener) {
+      this.cdp.off('Page.screencastFrame', this.screencastListener);
+      this.screencastListener = null;
+    }
+
+    await this.cdp.send('Page.stopScreencast').catch(() => {});
+  }
+
+  /**
    * Closes the page.
    */
   async close(): Promise<void> {
-    await this.page.close();
+    await this.stopScreencast().catch(() => {});
+    await this.page.close().catch(() => {});
   }
 }
 
