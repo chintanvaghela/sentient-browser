@@ -1,0 +1,19 @@
+{
+  "name": "@sentient/cli",
+  "version": "0.1.0",
+  "description": "Command line interface and REPL for Sentient Browser",
+  "main": "./dist/index.js",
+  "bin": {
+    "sentient": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm",
+    "dev": "tsup src/index.ts --format esm --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@sentient/core": "workspace:*",
+    "@sentient/sdk": "workspace:*",
+    "commander": "^12.1.0"
+  }
+}
