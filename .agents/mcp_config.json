@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "sentient-browser": {
+      "command": "node",
+      "args": [
+        "./packages/cli/dist/index.mjs",
+        "mcp"
+      ],
+      "env": {}
+    }
+  }
+}

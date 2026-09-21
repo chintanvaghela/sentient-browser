@@ -54,6 +54,7 @@ export class SentientMcpServer {
     switch (name) {
       case 'sentient_navigate': {
         const snapshot: SemanticSnapshot = await page.goto(args.url, { timeoutMs: args.timeoutMs });
+        const displayUrl = snapshot.url.startsWith('data:') ? 'data:... (data URI)' : snapshot.url;
         const interactives = (snapshot.nodes || [])
           .filter((n) => n.clickable || n.role === 'button' || n.role === 'textbox' || n.role === 'link')
           .slice(0, 35)
@@ -64,7 +65,7 @@ export class SentientMcpServer {
           content: [
             {
               type: 'text',
-              text: `Page Loaded: "${snapshot.title}" (${snapshot.url})\nInteractive Targets (${snapshot.interactiveCount}):\n${interactives || '(no interactive elements)'}`
+              text: `Page Loaded: "${snapshot.title}" (${displayUrl})\nInteractive Targets (${snapshot.interactiveCount}):\n${interactives || '(no interactive elements)'}`
             }
           ]
         };
