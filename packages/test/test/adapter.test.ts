@@ -6,6 +6,9 @@ import {
   wrapPlaywrightPage,
   sentientClick,
   sentientFill,
+  sentientHover,
+  sentientScroll,
+  sentientRollback,
   sentientSnapshot
 } from '../src/index.js';
 
@@ -88,6 +91,14 @@ describe('@sentient/test Playwright Adapter & Matchers', () => {
     // Assert semantic text matcher
     await (expect(sentientPage) as any).toHaveSemanticText('Welcome to HyperScale');
 
+    // Hover over input
+    const hoverDiff = await sentientHover(page, 'Enter your email');
+    expect(hoverDiff).toBeDefined();
+
+    // Scroll page
+    const scrollDiff = await sentientScroll(page, { direction: 'down', amountPx: 100 });
+    expect(scrollDiff).toBeDefined();
+
     // Fill input using sentientFill
     await sentientFill(page, 'Enter your email', 'developer@scrum.com');
 
@@ -97,5 +108,9 @@ describe('@sentient/test Playwright Adapter & Matchers', () => {
 
     // Verify added element through custom matcher
     (expect(diff) as any).toHaveAdded('Submission successful');
+
+    // Rollback test
+    const rollbackDiff = await sentientRollback(page);
+    expect(rollbackDiff).toBeDefined();
   });
 });

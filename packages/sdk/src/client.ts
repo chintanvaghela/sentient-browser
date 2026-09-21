@@ -81,6 +81,29 @@ export class RemoteSentientPage {
     return res.data;
   }
 
+  async remember(key: string, value: any): Promise<void> {
+    await this.client.call('remember', { pageId: this.pageId, key, value });
+  }
+
+  async recall<T = any>(key: string): Promise<T | undefined> {
+    const res = await this.client.call('recall', { pageId: this.pageId, key });
+    return res.value;
+  }
+
+  async clearMemory(): Promise<void> {
+    await this.client.call('clearMemory', { pageId: this.pageId });
+  }
+
+  async startScreencast(callback: (data: string, metadata: any) => void): Promise<void> {
+    this.client.onScreencastFrame(this.pageId, callback);
+    await this.client.call('startScreencast', { pageId: this.pageId });
+  }
+
+  async stopScreencast(): Promise<void> {
+    this.client.offScreencastFrame(this.pageId);
+    await this.client.call('stopScreencast', { pageId: this.pageId });
+  }
+
   async close(): Promise<void> {
     await this.client.call('closePage', { pageId: this.pageId });
   }
@@ -94,6 +117,8 @@ export class SentientClient {
   private reqCounter = 0;
   private pendingRequests: Map<number, { resolve: (val: any) => void; reject: (err: any) => void }> = new Map();
   private diffListeners: Array<(diff: StateDiff, pageId: string) => void> = [];
+  private agentStepListeners: Array<(step: any, pageId: string) => void> = [];
+  private screencastListeners: Map<string, (data: string, metadata: any) => void> = new Map();
 
   constructor(private options: ClientOptions = {}) {}
 
@@ -121,6 +146,23 @@ export class SentientClient {
             const { pageId, diff } = msg.params;
             for (const listener of this.diffListeners) {
               listener(diff, pageId);
+            }
+            return;
+          }
+
+          if (msg.method === 'event.agentStep') {
+            const { pageId, step } = msg.params;
+            for (const listener of this.agentStepListeners) {
+              listener(step, pageId);
+            }
+            return;
+          }
+
+          if (msg.method === 'event.screencastFrame') {
+            const { pageId, data: frameData, metadata } = msg.params;
+            const listener = this.screencastListeners.get(pageId);
+            if (listener) {
+              listener(frameData, metadata);
             }
             return;
           }
@@ -162,6 +204,18 @@ export class SentientClient {
 
   onDiff(listener: (diff: StateDiff, pageId: string) => void): void {
     this.diffListeners.push(listener);
+  }
+
+  onAgentStep(listener: (step: any, pageId: string) => void): void {
+    this.agentStepListeners.push(listener);
+  }
+
+  onScreencastFrame(pageId: string, listener: (data: string, metadata: any) => void): void {
+    this.screencastListeners.set(pageId, listener);
+  }
+
+  offScreencastFrame(pageId: string): void {
+    this.screencastListeners.delete(pageId);
   }
 
   disconnect(): void {

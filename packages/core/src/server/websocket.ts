@@ -230,6 +230,24 @@ export class SentientServer {
         return { data };
       }
 
+      case 'remember': {
+        const page = this.getPage(params.pageId);
+        page.remember(params.key, params.value);
+        return { status: 'success' };
+      }
+
+      case 'recall': {
+        const page = this.getPage(params.pageId);
+        const value = page.recall(params.key);
+        return { value };
+      }
+
+      case 'clearMemory': {
+        const page = this.getPage(params.pageId);
+        page.clearMemory();
+        return { status: 'success' };
+      }
+
       case 'closePage': {
         const page = this.getPage(params.pageId);
         await page.close();

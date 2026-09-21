@@ -50,6 +50,40 @@ describe('SentientServer & Web Inspector', () => {
 
     expect(response.id).toBe(1);
     expect(response.result?.pageId).toBeDefined();
+    const pageId = response.result.pageId;
+
+    // Helper to send RPC and wait for response
+    let reqId = 1;
+    const sendRpc = (method: string, params: any) =>
+      new Promise<any>((resolve) => {
+        reqId++;
+        const curId = reqId;
+        const handler = (raw: any) => {
+          const msg = JSON.parse(raw.toString());
+          if (msg.id === curId) {
+            ws.off('message', handler);
+            resolve(msg);
+          }
+        };
+        ws.on('message', handler);
+        ws.send(JSON.stringify({ jsonrpc: '2.0', id: curId, method, params }));
+      });
+
+    // 3. Test agent memory RPC
+    const rememberRes = await sendRpc('remember', { pageId, key: 'test_key', value: 'hello_memory' });
+    expect(rememberRes.result?.status).toBe('success');
+
+    const recallRes = await sendRpc('recall', { pageId, key: 'test_key' });
+    expect(recallRes.result?.value).toBe('hello_memory');
+
+    const clearRes = await sendRpc('clearMemory', { pageId });
+    expect(clearRes.result?.status).toBe('success');
+
+    const recallClearedRes = await sendRpc('recall', { pageId, key: 'test_key' });
+    expect(recallClearedRes.result?.value).toBeUndefined();
+
+    // 4. Close page
+    await sendRpc('closePage', { pageId });
 
     ws.close();
   });

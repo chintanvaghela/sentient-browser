@@ -144,6 +144,26 @@ program
             console.log(diff.compact);
             break;
           }
+          case 'hover': {
+            const target = args.join(' ');
+            console.log(`Hovering "${target}"...`);
+            const diff = await page.hover(target);
+            console.log(diff.compact || 'Hover complete.');
+            break;
+          }
+          case 'scroll': {
+            const dir = (args[0] as any) || 'down';
+            console.log(`Scrolling ${dir}...`);
+            const diff = await page.scroll({ direction: dir });
+            console.log(diff.compact || 'Scroll complete.');
+            break;
+          }
+          case 'rollback': {
+            console.log('Rolling back last action...');
+            const diff = await page.rollback();
+            console.log(diff.compact || 'State restored.');
+            break;
+          }
           case 'goto': {
             const newUrl = args[0];
             console.log(`Navigating to ${newUrl}...`);
@@ -157,6 +177,9 @@ program
             console.log('  diff                     - Display incremental state diff');
             console.log('  click <target>           - Click an element by Stable ID or text');
             console.log('  fill <target> <text>     - Fill an input field');
+            console.log('  hover <target>           - Hover over an element');
+            console.log('  scroll [down|up]         - Scroll the viewport');
+            console.log('  rollback                 - Revert the last intent action');
             console.log('  goto <url>               - Navigate to new URL');
             console.log('  exit / quit              - Exit the REPL');
             break;

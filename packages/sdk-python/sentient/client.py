@@ -117,6 +117,24 @@ class RemoteSentientPage:
         """Extracts list items into clean string arrays."""
         return await self.client.call("extractList", {"pageId": self.page_id, "selector": selector})
 
+    async def screenshot(self, format: str = "jpeg", quality: int = 80) -> str:
+        """Captures a base64 encoded screenshot of the page viewport."""
+        res = await self.client.call("screenshot", {"pageId": self.page_id, "options": {"format": format, "quality": quality}})
+        return res.get("data", "")
+
+    async def remember(self, key: str, value: Any) -> None:
+        """Stores a key-value record in page memory."""
+        await self.client.call("remember", {"pageId": self.page_id, "key": key, "value": value})
+
+    async def recall(self, key: str) -> Optional[Any]:
+        """Recalls a stored value from page memory."""
+        res = await self.client.call("recall", {"pageId": self.page_id, "key": key})
+        return res.get("value")
+
+    async def clear_memory(self) -> None:
+        """Clears all stored values in page memory."""
+        await self.client.call("clearMemory", {"pageId": self.page_id})
+
     async def close(self) -> None:
         """Closes the current browser page session."""
         await self.client.call("closePage", {"pageId": self.page_id})

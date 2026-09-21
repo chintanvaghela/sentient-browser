@@ -11,8 +11,8 @@ describe('Sentient MCP Server', () => {
     }
   });
 
-  it('exposes all 10 core autonomous browser tools with standard schemas', () => {
-    expect(SENTIENT_TOOLS).toHaveLength(10);
+  it('exposes all 11 core autonomous browser tools with standard schemas', () => {
+    expect(SENTIENT_TOOLS).toHaveLength(11);
 
     const toolNames = SENTIENT_TOOLS.map((t) => t.name);
     expect(toolNames).toContain('sentient_navigate');
@@ -24,6 +24,7 @@ describe('Sentient MCP Server', () => {
     expect(toolNames).toContain('sentient_rollback');
     expect(toolNames).toContain('sentient_extract');
     expect(toolNames).toContain('sentient_snapshot');
+    expect(toolNames).toContain('sentient_diff');
     expect(toolNames).toContain('sentient_screenshot');
 
     for (const tool of SENTIENT_TOOLS) {
@@ -85,7 +86,13 @@ describe('Sentient MCP Server', () => {
     expect(links.length).toBeGreaterThanOrEqual(1);
     expect(links[0].href).toContain('https://example.com/item1');
 
-    // 6. sentient_screenshot
+    // 6. sentient_diff
+    const diffResult = await server.executeTool('sentient_diff', {});
+    expect(diffResult.content).toBeDefined();
+    expect(diffResult.content[0].type).toBe('text');
+    expect(diffResult.content[0].text).toBeDefined();
+
+    // 7. sentient_screenshot
     const screenshotResult = await server.executeTool('sentient_screenshot', {});
     expect(screenshotResult.content).toBeDefined();
     const imageContent = screenshotResult.content.find((c: any) => c.type === 'image');

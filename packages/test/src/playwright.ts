@@ -6,6 +6,7 @@ import {
   SemanticCache,
   ClickOptions,
   FillOptions,
+  ScrollOptions,
   StateDiff,
   SemanticSnapshot
 } from '@sentient/core';
@@ -71,6 +72,47 @@ export async function sentientFill(
   }
   const sp = await wrapPlaywrightPage(page);
   return sp.fill(target, text, options);
+}
+
+/**
+ * Drop-in hover helper that targets elements to reveal menus or tooltips.
+ */
+export async function sentientHover(
+  page: Page | SentientPage,
+  target: string
+): Promise<StateDiff> {
+  if (page instanceof SentientPage) {
+    return page.hover(target);
+  }
+  const sp = await wrapPlaywrightPage(page);
+  return sp.hover(target);
+}
+
+/**
+ * Drop-in scroll helper with automatic DOM settlement.
+ */
+export async function sentientScroll(
+  page: Page | SentientPage,
+  options: ScrollOptions = {}
+): Promise<StateDiff> {
+  if (page instanceof SentientPage) {
+    return page.scroll(options);
+  }
+  const sp = await wrapPlaywrightPage(page);
+  return sp.scroll(options);
+}
+
+/**
+ * Drop-in rollback helper to undo actions and restore state.
+ */
+export async function sentientRollback(
+  page: Page | SentientPage
+): Promise<StateDiff> {
+  if (page instanceof SentientPage) {
+    return page.rollback();
+  }
+  const sp = await wrapPlaywrightPage(page);
+  return sp.rollback();
 }
 
 /**

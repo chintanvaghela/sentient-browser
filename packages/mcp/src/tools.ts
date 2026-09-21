@@ -125,6 +125,15 @@ export const SENTIENT_TOOLS: ToolDefinition[] = [
     }
   },
   {
+    name: 'sentient_diff',
+    description:
+      'Get incremental state diff showing DOM additions, removals, attribute updates, and compact summary since the previous action. Highly token-efficient (<100 tokens).',
+    inputSchema: {
+      type: 'object',
+      properties: {}
+    }
+  },
+  {
     name: 'sentient_screenshot',
     description:
       'Capture a viewport JPEG screenshot as base64 data for visual inspection.',
