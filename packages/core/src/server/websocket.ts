@@ -224,6 +224,12 @@ export class SentientServer {
         return { status: 'success' };
       }
 
+      case 'screenshot': {
+        const page = this.getPage(params.pageId);
+        const data = await page.screenshot(params.options);
+        return { data };
+      }
+
       case 'closePage': {
         const page = this.getPage(params.pageId);
         await page.close();

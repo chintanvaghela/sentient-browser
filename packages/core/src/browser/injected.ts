@@ -110,35 +110,69 @@ export const SENTIENT_INJECTED_SCRIPT = `
 
   // 4. Target Element Resolver
   window.__sentient_find_target = function(target) {
+    if (!target) return null;
+
     // A. Direct data-sentient-id match
-    let el = document.querySelector('[data-sentient-id="' + CSS.escape(target) + '"]');
-    if (el) return el;
+    try {
+      let el = document.querySelector('[data-sentient-id="' + CSS.escape(target) + '"]');
+      if (el) return el;
+    } catch (_) {}
 
     // B. data-testid or id match
-    el = document.querySelector('[data-testid="' + CSS.escape(target) + '"]') || document.getElementById(target);
-    if (el) return el;
+    try {
+      let el = document.querySelector('[data-testid="' + CSS.escape(target) + '"]') || document.getElementById(target);
+      if (el) return el;
+    } catch (_) {}
 
-    // C. Text match across interactive elements
+    // C. Direct CSS selector match (e.g. "#test-input", "input.email", "button.submit")
+    try {
+      let el = document.querySelector(target);
+      if (el) return el;
+    } catch (_) {}
+
+    // D. Text / Placeholder / Label match across interactive elements
     const cleanTarget = target.toLowerCase().trim();
-    const candidates = Array.from(document.querySelectorAll('button, a, input, [role="button"], select, textarea'));
+    const candidates = Array.from(document.querySelectorAll('button, a, input, [role="button"], select, textarea, [tabindex]'));
     
-    // Exact text match
+    const getCandidateText = function(c) {
+      return (
+        c.innerText ||
+        c.value ||
+        c.getAttribute('placeholder') ||
+        c.getAttribute('aria-label') ||
+        c.getAttribute('name') ||
+        c.getAttribute('title') ||
+        ''
+      ).toLowerCase().trim();
+    };
+
+    // Exact text / placeholder match
     for (const cand of candidates) {
-      const text = (cand.innerText || cand.value || cand.getAttribute('aria-label') || '').toLowerCase().trim();
-      if (text === cleanTarget) return cand;
+      if (getCandidateText(cand) === cleanTarget) return cand;
     }
 
-    // Contains text match
+    // Contains text / placeholder match
     for (const cand of candidates) {
-      const text = (cand.innerText || cand.value || cand.getAttribute('aria-label') || '').toLowerCase().trim();
-      if (text.includes(cleanTarget)) return cand;
+      const text = getCandidateText(cand);
+      if (text && text.includes(cleanTarget)) return cand;
     }
 
-    // D. De-slugged match (e.g. "time_tracker_button" -> "time tracker")
+    // E. Normalized slug match against data-sentient-id (e.g. "Type here..." -> "type_here" / "type_here_textbox")
+    const normalizedSlug = cleanTarget.replace(/[^\w\s-]/g, '').trim().replace(/[\s_-]+/g, '_');
+    if (normalizedSlug) {
+      for (const cand of candidates) {
+        const idAttr = cand.getAttribute('data-sentient-id') || '';
+        if (idAttr === normalizedSlug || idAttr.startsWith(normalizedSlug) || idAttr.includes(normalizedSlug)) {
+          return cand;
+        }
+      }
+    }
+
+    // F. De-slugged match (e.g. "time_tracker_button" -> "time tracker")
     const deSlugged = cleanTarget.replace(/_(button|link|textbox|heading|dialog|select)$/, '').replace(/_/g, ' ').trim();
     if (deSlugged && deSlugged !== cleanTarget) {
       for (const cand of candidates) {
-        const text = (cand.innerText || cand.value || cand.getAttribute('aria-label') || '').toLowerCase().trim();
+        const text = getCandidateText(cand);
         if (text === deSlugged || text.includes(deSlugged)) return cand;
       }
     }

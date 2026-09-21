@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@sentient/core": "workspace:*",
+    "@sentient/mcp": "workspace:*",
     "@sentient/sdk": "workspace:*",
     "commander": "^12.1.0"
   }
