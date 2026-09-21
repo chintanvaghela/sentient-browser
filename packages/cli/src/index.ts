@@ -58,6 +58,41 @@ program
   });
 
 program
+  .command('act')
+  .description('Autonomously execute a natural language goal on a target webpage')
+  .argument('<url>', 'Target URL to begin navigation')
+  .argument('<goal>', 'Natural language objective to achieve')
+  .option('--headful', 'Run with visible browser window', false)
+  .option('--max-steps <number>', 'Maximum autonomous steps', '8')
+  .action(async (url, goal, options) => {
+    const manager = new ChromiumManager();
+    console.log(`🤖 Starting Autonomous Planner at ${url}...`);
+    console.log(`🎯 Goal: "${goal}"\n`);
+    await manager.launch({ headless: !options.headful });
+
+    const page = await manager.newPage();
+    await page.goto(url);
+
+    const result = await page.solve({
+      goal,
+      maxSteps: parseInt(options.maxSteps, 10),
+      onStep: (step) => {
+        console.log(`[Step ${step.stepNumber}] Action: ${step.action.type.toUpperCase()}${step.action.target ? ' -> ' + step.action.target : ''}`);
+        if (step.action.reasoning) console.log(`  Reasoning: ${step.action.reasoning}`);
+        if (step.diffSummary) console.log(`  Diff: ${step.diffSummary.split('\n')[0]}`);
+      }
+    });
+
+    console.log(`\n======================================================`);
+    console.log(result.success ? `✓ Goal Completed in ${result.durationMs}ms (${result.stepsCount} steps)` : `✗ Goal Incomplete: ${result.error}`);
+    console.log(`======================================================`);
+    console.log(`\n📌 Result / Answer:`);
+    console.log(result.answer || 'No answer returned.');
+
+    await manager.close();
+  });
+
+program
   .command('repl')
   .description('Interactive Sentient REPL to test intent actions live')
   .argument('<url>', 'Initial URL to navigate to')

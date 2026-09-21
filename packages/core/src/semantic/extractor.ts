@@ -192,7 +192,13 @@ export const IN_PAGE_EXTRACTOR_SCRIPT = `
     }
 
     // Generate stable ID slug
-    const labelCandidate = ariaLabel || testId || placeholder || directText || role;
+    const isInput = tag === 'input' || tag === 'textarea';
+    const rawId = el.id || '';
+    const nameAttr = el.getAttribute('name') || '';
+    const labelCandidate = isInput
+      ? (ariaLabel || testId || placeholder || nameAttr || rawId || directText || role)
+      : (ariaLabel || testId || placeholder || directText || rawId || nameAttr || role);
+
     let slug = labelCandidate.toLowerCase().replace(/[^\\w\\s-]/g, '').trim().replace(/[\\s_-]+/g, '_').slice(0, 28);
     if (!slug.endsWith(role)) {
       slug = slug ? slug + '_' + role : role;

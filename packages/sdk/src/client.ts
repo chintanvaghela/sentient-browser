@@ -51,6 +51,31 @@ export class RemoteSentientPage {
     return res.diff;
   }
 
+  async getSummary(): Promise<any> {
+    return this.client.call('getSummary', { pageId: this.pageId });
+  }
+
+  async extractTable(selector?: string): Promise<Record<string, string>[]> {
+    return this.client.call('extractTable', { pageId: this.pageId, selector });
+  }
+
+  async extractList(selector?: string): Promise<string[]> {
+    return this.client.call('extractList', { pageId: this.pageId, selector });
+  }
+
+  async extractLinks(): Promise<Array<{ text: string; href: string }>> {
+    return this.client.call('extractLinks', { pageId: this.pageId });
+  }
+
+  async rollback(): Promise<StateDiff> {
+    const res = await this.client.call('rollback', { pageId: this.pageId });
+    return res.diff;
+  }
+
+  async solve(goal: any): Promise<any> {
+    return this.client.call('solve', { pageId: this.pageId, goal });
+  }
+
   async close(): Promise<void> {
     await this.client.call('closePage', { pageId: this.pageId });
   }

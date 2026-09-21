@@ -1,6 +1,7 @@
 import type { CDPSession, Page } from 'playwright-core';
 import { WaitEngine } from '../wait/engine.js';
 import { ClickOptions, FillOptions, ScrollOptions } from './types.js';
+import { IN_PAGE_EXTRACTOR_SCRIPT } from '../semantic/extractor.js';
 
 export class TargetNotFoundError extends Error {
   constructor(target: string) {
@@ -23,11 +24,8 @@ export class IntentEngine {
     private waitEngine: WaitEngine
   ) {}
 
-  /**
-   * Resolves target element, scrolls into view if needed, and returns bounding box.
-   */
-  private async resolveTarget(target: string): Promise<{ x: number; y: number; width: number; height: number }> {
-    const res = await this.page.evaluate((tgt) => {
+  private async queryTarget(target: string): Promise<any> {
+    return this.page.evaluate((tgt) => {
       const finder = (window as any).__sentient_find_target;
       const el = finder ? finder(tgt) : null;
       if (!el) return { found: false };
@@ -51,6 +49,19 @@ export class IntentEngine {
         }
       };
     }, target);
+  }
+
+  /**
+   * Resolves target element, scrolls into view if needed, and returns bounding box.
+   */
+  private async resolveTarget(target: string): Promise<{ x: number; y: number; width: number; height: number }> {
+    let res = await this.queryTarget(target);
+
+    // Self-healing: if target not found immediately, re-run extractor to re-stamp data-sentient-id attributes
+    if (!res.found) {
+      await this.page.evaluate(IN_PAGE_EXTRACTOR_SCRIPT).catch(() => {});
+      res = await this.queryTarget(target);
+    }
 
     if (!res.found) {
       throw new TargetNotFoundError(target);
