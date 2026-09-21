@@ -96,16 +96,54 @@ export const SENTIENT_INJECTED_SCRIPT = `
   }
 
   // 3. Settlement Status Helper
-  window.__sentient_get_settlement = function() {
+  window.__sentient_get_settlement = function(options) {
+    const scope = (options && options.scope) || 'local';
     const now = Date.now();
     const timeSinceMutation = now - window.__sentient_last_mutation;
     const timeSinceNet = now - window.__sentient_last_net_activity;
 
     let activeAnimations = 0;
     try {
-      if (document.getAnimations) {
+      if (scope === 'global') {
+        // Global scope: inspect all animations and CSS transitions across document.body and React portals
+        const anims = document.body && document.body.getAnimations
+          ? document.body.getAnimations({ subtree: true })
+          : (document.getAnimations ? document.getAnimations() : []);
+
+        activeAnimations = anims.filter(a => {
+          const isRunningOrPending = a.playState === 'running' || a.pending;
+          if (!isRunningOrPending) return false;
+          try {
+            const timing = a.effect && a.effect.getComputedTiming ? a.effect.getComputedTiming() : null;
+            return !timing || timing.iterations !== Infinity;
+          } catch (_) {
+            return true;
+          }
+        }).length;
+
+        // Also check if any fixed/portal overlay elements have active CSS transitions
+        if (activeAnimations === 0) {
+          const overlays = document.querySelectorAll('.fixed, [role="dialog"], [aria-modal="true"], [data-state="open"], [class*="modal"]');
+          for (const ov of overlays) {
+            const cs = window.getComputedStyle(ov);
+            const transitionDuration = parseFloat(cs.transitionDuration || '0');
+            const animationDuration = parseFloat(cs.animationDuration || '0');
+            const maxDurationMs = Math.max(transitionDuration, animationDuration) * 1000;
+            if (maxDurationMs > 0 && timeSinceMutation < maxDurationMs + 50) {
+              activeAnimations++;
+            }
+          }
+        }
+      } else if (document.getAnimations) {
         activeAnimations = document.getAnimations().filter(a => {
-          return a.playState === 'running' && a.effect && a.effect.getComputedTiming().iterations !== Infinity;
+          const isRunningOrPending = a.playState === 'running' || a.pending;
+          if (!isRunningOrPending) return false;
+          try {
+            const timing = a.effect && a.effect.getComputedTiming ? a.effect.getComputedTiming() : null;
+            return !timing || timing.iterations !== Infinity;
+          } catch (_) {
+            return true;
+          }
         }).length;
       }
     } catch (_) {}

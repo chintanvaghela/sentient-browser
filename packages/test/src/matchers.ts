@@ -74,10 +74,15 @@ export const sentientMatchers = {
   /**
    * Asserts that a SentientPage has reached deterministic settlement.
    */
-  async toSettle(received: SentientPage | any, options: { timeoutMs?: number; profile?: 'eager' | 'default' | 'strict' } = {}): Promise<MatcherResult> {
+  async toSettle(
+    received: SentientPage | any,
+    options: { timeoutMs?: number; profile?: 'eager' | 'default' | 'strict'; scope?: 'global' | 'local' } = {}
+  ): Promise<MatcherResult> {
     try {
       if (typeof received?.waitForSettlement === 'function') {
         await received.waitForSettlement(options);
+      } else if (typeof received?.page?.waitForSettlement === 'function') {
+        await received.page.waitForSettlement(options);
       } else if (received?.waitEngine && typeof received.waitEngine.waitForSettlement === 'function') {
         await received.waitEngine.waitForSettlement(options);
       } else if (typeof received?.evaluate === 'function') {

@@ -113,4 +113,59 @@ describe('@sentient/test Playwright Adapter & Matchers', () => {
     const rollbackDiff = await sentientRollback(page);
     expect(rollbackDiff).toBeDefined();
   });
+
+  it('interacts with elements in position: fixed overlays and overflow-y: auto containers with global toSettle', async () => {
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Portal & Overlay Test</title>
+          <style>
+            .fixed-overlay {
+              position: fixed;
+              top: 0; left: 0; right: 0; bottom: 0;
+              background: rgba(0, 0, 0, 0.5);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              transition: opacity 150ms ease-in-out;
+            }
+            .scroll-container {
+              max-height: 200px;
+              overflow-y: auto;
+              width: 300px;
+              padding: 20px;
+              background: white;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="fixed-overlay" role="dialog">
+            <div class="scroll-container">
+              <div style="height: 50px;">Top Spacer</div>
+              <input id="task-title" placeholder="Enter task title" type="text" />
+              <div style="height: 100px;">Middle Spacer</div>
+              <button id="create-btn" onclick="document.body.innerHTML += '<p id=created>Task Created Successfully</p>'">Create Task</button>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    await page.goto(`data:text/html,${encodeURIComponent(html)}`);
+    const sentientPage = await wrapPlaywrightPage(page);
+
+    // Test toSettle with global scope
+    await (expect(sentientPage) as any).toSettle({ scope: 'global' });
+
+    // Test sentientFill inside position: fixed + overflow-y: auto
+    await sentientFill(page, 'Enter task title', 'New Autonomous Task');
+    const inputVal = await page.$eval('#task-title', (el: any) => el.value);
+    expect(inputVal).toBe('New Autonomous Task');
+
+    // Test sentientClick inside position: fixed overlay
+    const diff = await sentientClick(page, 'Create Task');
+    expect(diff).toBeDefined();
+    (expect(diff) as any).toHaveAdded('Task Created Successfully');
+  });
 });
