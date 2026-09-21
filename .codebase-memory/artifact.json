@@ -1,11 +1,11 @@
 {
     "schema_version": 2,
-    "commit": "6f1dcf7185b253180df7203c8a3496b45f451616",
-    "indexed_at": "2026-09-21T15:35:58Z",
+    "commit": "09e317370906454fa2153674f438348505216594",
+    "indexed_at": "2026-09-21T15:36:27Z",
     "project": "home-chintan-Projects-AIBrowserRuntime",
     "nodes": 807,
     "edges": 2000,
     "original_size": 4980736,
-    "compressed_size": 853101,
+    "compressed_size": 852730,
     "compression_level": 3
 }
