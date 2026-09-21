@@ -10,12 +10,14 @@ import { StateDiff } from '../diff/types.js';
 import { WaitEngine } from '../wait/engine.js';
 import { IntentEngine } from '../intent/engine.js';
 import { ClickOptions, FillOptions, ScrollOptions } from '../intent/types.js';
+import { MemoryStore } from '../memory/store.js';
 
 export interface LaunchOptions {
   headless?: boolean;
   executablePath?: string;
   viewport?: { width: number; height: number };
   args?: string[];
+  persistMemoryPath?: string;
 }
 
 /**
@@ -56,10 +58,32 @@ export class SentientPage {
 
   constructor(
     public page: Page,
-    public cdp: CDPSession
+    public cdp: CDPSession,
+    public memory: MemoryStore = new MemoryStore()
   ) {
     this.waitEngine = new WaitEngine(page, cdp);
     this.intentEngine = new IntentEngine(page, cdp, this.waitEngine);
+  }
+
+  /**
+   * Stores a key-value pair in agent memory.
+   */
+  remember(key: string, value: any): void {
+    this.memory.remember(key, value);
+  }
+
+  /**
+   * Recalls a value from agent memory by key.
+   */
+  recall<T = any>(key: string): T | undefined {
+    return this.memory.recall<T>(key);
+  }
+
+  /**
+   * Clears all agent memory.
+   */
+  clearMemory(): void {
+    this.memory.clear();
   }
 
   /**
@@ -72,7 +96,17 @@ export class SentientPage {
     });
 
     await this.waitEngine.waitForSettlement({ timeoutMs: options.timeoutMs });
-    return this.getSemanticDOM();
+    const snapshot = await this.getSemanticDOM();
+
+    // Automatically record visited page in memory
+    this.memory.recordVisit({
+      url: snapshot.url,
+      title: snapshot.title,
+      timestamp: Date.now(),
+      interactiveCount: snapshot.interactiveCount
+    });
+
+    return snapshot;
   }
 
   /**
@@ -147,11 +181,20 @@ export class SentientPage {
 export class ChromiumManager {
   private browser: Browser | null = null;
   private context: BrowserContext | null = null;
+  public memory: MemoryStore;
+
+  constructor(options: { persistMemoryPath?: string } = {}) {
+    this.memory = new MemoryStore({ persistPath: options.persistMemoryPath });
+  }
 
   /**
    * Launches Chromium and creates an isolated context.
    */
   async launch(options: LaunchOptions = {}): Promise<void> {
+    if (options.persistMemoryPath) {
+      this.memory = new MemoryStore({ persistPath: options.persistMemoryPath });
+    }
+
     const execPath =
       options.executablePath ||
       findCachedChromiumExecutable() ||
@@ -177,7 +220,7 @@ export class ChromiumManager {
   }
 
   /**
-   * Creates a new page attached to a direct CDP session.
+   * Creates a new page attached to a direct CDP session and shared memory store.
    */
   async newPage(): Promise<SentientPage> {
     if (!this.context) {
@@ -187,7 +230,7 @@ export class ChromiumManager {
     const page = await this.context.newPage();
     const cdp = await this.context.newCDPSession(page);
 
-    return new SentientPage(page, cdp);
+    return new SentientPage(page, cdp, this.memory);
   }
 
   /**

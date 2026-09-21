@@ -10,3 +10,5 @@ export * from './intent/engine.js';
 export * from './browser/chromium.js';
 export * from './browser/injected.js';
 export * from './server/websocket.js';
+export * from './memory/types.js';
+export * from './memory/store.js';

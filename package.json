@@ -1,6 +1,7 @@
 {
   "name": "sentient-browser",
   "version": "0.1.0",
+  "type": "module",
   "private": true,
   "description": "An AI-native browser runtime designed for autonomous AI agents",
   "author": "Chintan",
