@@ -2,12 +2,14 @@ export interface ClickOptions {
   button?: 'left' | 'right' | 'middle';
   clickCount?: number;
   timeoutMs?: number;
+  waitProfile?: 'eager' | 'default' | 'strict';
 }
 
 export interface FillOptions {
   clearFirst?: boolean;
   pressEnterAfter?: boolean;
   timeoutMs?: number;
+  waitProfile?: 'eager' | 'default' | 'strict';
 }
 
 export interface ScrollOptions {
