@@ -1,5 +1,7 @@
+import http from 'node:http';
 import { WebSocketServer, WebSocket } from 'ws';
 import { ChromiumManager, SentientPage } from '../browser/chromium.js';
+import { INSPECTOR_HTML } from './inspector_html.js';
 
 export interface ServerOptions {
   port?: number;
@@ -7,9 +9,12 @@ export interface ServerOptions {
 }
 
 /**
- * WebSocket Server exposing JSON-RPC 2.0 interface for remote AI agents.
+ * WebSocket & HTTP Server exposing:
+ * 1. JSON-RPC 2.0 interface and PubSub event stream over WebSocket
+ * 2. Real-time visual Web Inspector at GET http://localhost:<port>/
  */
 export class SentientServer {
+  private httpServer: http.Server | null = null;
   private wss: WebSocketServer | null = null;
   private browserManager: ChromiumManager;
   private pages: Map<string, SentientPage> = new Map();
@@ -27,12 +32,23 @@ export class SentientServer {
     });
 
     return new Promise((resolve, reject) => {
-      this.wss = new WebSocketServer({ port }, () => {
-        resolve(port);
+      this.httpServer = http.createServer((req, res) => {
+        if (req.url === '/' || req.url?.startsWith('/inspect')) {
+          res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+          res.end(INSPECTOR_HTML);
+        } else {
+          res.writeHead(404, { 'Content-Type': 'text/plain' });
+          res.end('Not found. Open / to access Sentient Web Inspector.');
+        }
       });
 
-      this.wss.on('error', reject);
+      this.wss = new WebSocketServer({ server: this.httpServer });
       this.wss.on('connection', (ws) => this.handleConnection(ws));
+
+      this.httpServer.on('error', reject);
+      this.httpServer.listen(port, () => {
+        resolve(port);
+      });
     });
   }
 
@@ -153,6 +169,13 @@ export class SentientServer {
         this.wss!.close(() => resolve());
       });
       this.wss = null;
+    }
+
+    if (this.httpServer) {
+      await new Promise<void>((resolve) => {
+        this.httpServer!.close(() => resolve());
+      });
+      this.httpServer = null;
     }
   }
 }

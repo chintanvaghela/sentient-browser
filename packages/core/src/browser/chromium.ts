@@ -13,6 +13,12 @@ import { ClickOptions, FillOptions, ScrollOptions } from '../intent/types.js';
 import { MemoryStore } from '../memory/store.js';
 import { extractLinks, extractTable, extractList, extractSummary, type PageLink, type PageSummary } from '../semantic/extract.js';
 import { ParallelScheduler, type SchedulerOptions, type TaskResult } from './scheduler.js';
+import { PluginRegistry } from '../plugins/registry.js';
+import { HackerNewsPlugin } from '../plugins/builtin/hacker_news.js';
+import type { SitePlugin } from '../plugins/types.js';
+
+// Auto-register default built-in plugins
+PluginRegistry.register(HackerNewsPlugin);
 
 export interface LaunchOptions {
   headless?: boolean;
@@ -198,6 +204,13 @@ export class SentientPage {
   }
 
   /**
+   * Retrieves a registered site plugin bound to this page.
+   */
+  plugin<T = any>(name: string): T {
+    return PluginRegistry.bind(this, name);
+  }
+
+  /**
    * Closes the page.
    */
   async close(): Promise<void> {
@@ -215,6 +228,13 @@ export class ChromiumManager {
 
   constructor(options: { persistMemoryPath?: string } = {}) {
     this.memory = new MemoryStore({ persistPath: options.persistMemoryPath });
+  }
+
+  /**
+   * Registers a site plugin globally.
+   */
+  registerPlugin(plugin: SitePlugin): void {
+    PluginRegistry.register(plugin);
   }
 
   /**

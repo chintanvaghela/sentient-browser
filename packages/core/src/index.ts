@@ -14,3 +14,6 @@ export * from './memory/types.js';
 export * from './memory/store.js';
 export * from './semantic/extract.js';
 export * from './browser/scheduler.js';
+export * from './plugins/types.js';
+export * from './plugins/registry.js';
+export * from './plugins/builtin/hacker_news.js';
