@@ -204,6 +204,26 @@ export class SentientServer {
         return await page.solve(goal);
       }
 
+      case 'startScreencast': {
+        const page = this.getPage(params.pageId);
+        await page.startScreencast((data, metadata) => {
+          try {
+            ws.send(JSON.stringify({
+              jsonrpc: '2.0',
+              method: 'event.screencastFrame',
+              params: { pageId: params.pageId, data, metadata }
+            }));
+          } catch (_) {}
+        });
+        return { status: 'success' };
+      }
+
+      case 'stopScreencast': {
+        const page = this.getPage(params.pageId);
+        await page.stopScreencast();
+        return { status: 'success' };
+      }
+
       case 'closePage': {
         const page = this.getPage(params.pageId);
         await page.close();
