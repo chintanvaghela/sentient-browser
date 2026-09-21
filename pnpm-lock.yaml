@@ -26,6 +26,9 @@ importers:
       '@sentient/core':
         specifier: workspace:*
         version: link:../core
+      '@sentient/mcp':
+        specifier: workspace:*
+        version: link:../mcp
       '@sentient/sdk':
         specifier: workspace:*
         version: link:../sdk
@@ -45,6 +48,19 @@ importers:
       '@types/ws':
         specifier: ^8.5.13
         version: 8.18.1
+
+  packages/mcp:
+    dependencies:
+      '@sentient/core':
+        specifier: workspace:*
+        version: link:../core
+      '@sentient/sdk':
+        specifier: workspace:*
+        version: link:../sdk
+    devDependencies:
+      '@types/node':
+        specifier: ^22.13.4
+        version: 22.20.4
 
   packages/sdk:
     dependencies:

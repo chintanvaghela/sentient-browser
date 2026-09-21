@@ -183,4 +183,26 @@ program
     });
   });
 
+program
+  .command('mcp')
+  .description('Start Sentient Browser MCP (Model Context Protocol) server over stdio')
+  .option('-u, --url <url>', 'Sentient Browser daemon WebSocket URL', 'ws://127.0.0.1:9222')
+  .option('--headful', 'Run with visible browser window if spinning up embedded instance', false)
+  .action(async (options) => {
+    const { SentientMcpServer } = await import('@sentient/mcp');
+    const server = new SentientMcpServer({
+      daemonUrl: options.url,
+      headless: !options.headful
+    });
+    server.startStdio();
+
+    const cleanup = async () => {
+      await server.close();
+      process.exit(0);
+    };
+
+    process.on('SIGINT', cleanup);
+    process.on('SIGTERM', cleanup);
+  });
+
 program.parse(process.argv);

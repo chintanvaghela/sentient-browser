@@ -27,7 +27,8 @@ AIBrowserRuntime/
 │   ├── core/           # @sentient/core: Runtime engine, CDP driver, Semantic DOM & State Diff
 │   ├── sdk/            # @sentient/sdk: TypeScript/JavaScript WebSocket client SDK
 │   ├── sdk-python/     # sentient-browser: Python client SDK (Async & Sync)
-│   └── cli/            # @sentient/cli: Executable CLI (sentient serve, run, act, repl)
+│   ├── mcp/            # @sentient/mcp: Official Model Context Protocol (MCP) server
+│   └── cli/            # @sentient/cli: Executable CLI (sentient serve, run, act, repl, mcp)
 ├── docs/               # Architecture specs and technical roadmaps
 └── examples/           # Integration scripts & demonstrations
 ```
@@ -96,6 +97,70 @@ Start `sentient serve --port 9222` and open **`http://localhost:9222/`** in your
   - **🤖 Autonomous Agent Solver**: Enter high-level goal, click `🚀 Auto Solve`, or click `↩️ Rollback (Undo)`.
   - **🎯 Direct CDP Control**: Input target ID, text to fill, hover, and direction scrolling.
   - **📑 Extraction Drawers**: View page summary and extracted hyperlinks instantly.
+
+---
+
+## 🔌 Model Context Protocol (MCP) Server
+
+Connect any LLM agent (Claude Desktop, Cursor, Antigravity, Windsurf) directly to Sentient Browser as a **10x faster, >90% token-cheaper alternative to `chrome-devtools-mcp`**.
+
+### Why Sentient MCP vs `chrome-devtools-mcp`?
+| Feature | `chrome-devtools-mcp` | Sentient Browser MCP |
+|---|---|---|
+| **Token Consumption** | Dumps thousands of raw HTML/accessibility lines | **Compact semantic JSON (30-40 actionable nodes)** |
+| **Mutation Updates** | Must dump the whole DOM again (>15k tokens) | **Returns incremental diff (<100 tokens)** |
+| **Settlement** | Brittle fixed timeouts | **Deterministic multi-signal quiet detection** |
+| **Target Selectors** | Raw XPath or CSS that breaks on DOM change | **Stable semantic IDs, text, placeholders, and CSS** |
+| **Autonomous Action** | Single atomic actions only | **Single atomic actions AND full autonomous planner (`sentient_act`)** |
+| **Visual Oversight** | Headless without live stream | **Real-time 15–20 FPS visual screencast in Web Inspector** |
+
+### Start the MCP Server
+```bash
+# Option 1: Via Sentient CLI (stdio)
+sentient mcp
+
+# Option 2: Standalone executable
+npx @sentient/mcp
+```
+*Note: If `sentient serve --port 9222` is running, the MCP server connects to it automatically so you can watch your agent's actions in real-time in the Web Inspector at `http://localhost:9222/`. If no daemon is running, it spins up an embedded headless browser seamlessly.*
+
+### Client Configuration
+
+#### Claude Desktop (`claude_desktop_config.json`)
+```json
+{
+  "mcpServers": {
+    "sentient-browser": {
+      "command": "node",
+      "args": ["/absolute/path/to/AIBrowserRuntime/packages/cli/dist/index.mjs", "mcp"]
+    }
+  }
+}
+```
+
+#### Cursor (`.cursor/mcp.json`)
+```json
+{
+  "mcpServers": {
+    "sentient-browser": {
+      "command": "node",
+      "args": ["/absolute/path/to/AIBrowserRuntime/packages/cli/dist/index.mjs", "mcp"]
+    }
+  }
+}
+```
+
+### 10 Core Tools Exposed:
+1. `sentient_navigate`: Navigate to URL with deterministic settlement & token-pruned targets.
+2. `sentient_act`: Solve a multi-step natural language goal autonomously.
+3. `sentient_click`: Click element by stable ID, button text, or CSS selector with instant state diff.
+4. `sentient_fill`: Type text into an input field or textarea.
+5. `sentient_hover`: Hover mouse over element to trigger tooltips/menus.
+6. `sentient_scroll`: Smoothly scroll page or container up/down.
+7. `sentient_rollback`: Instantly undo the last action (restores previous form state, navigates back).
+8. `sentient_extract`: Extract structured tables, lists, links, or page summaries into JSON.
+9. `sentient_snapshot`: Retrieve full semantic snapshot with stable IDs and coordinates.
+10. `sentient_screenshot`: Capture high-resolution JPEG viewport screenshot.
 
 ---
 

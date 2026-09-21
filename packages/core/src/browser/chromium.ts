@@ -321,6 +321,17 @@ export class SentientPage {
   }
 
   /**
+   * Captures a JPEG or PNG screenshot as base64 string.
+   */
+  async screenshot(options: { format?: 'jpeg' | 'png'; quality?: number } = {}): Promise<string> {
+    const res = await this.cdp.send('Page.captureScreenshot', {
+      format: options.format || 'jpeg',
+      quality: options.quality ?? 80
+    });
+    return res.data;
+  }
+
+  /**
    * Starts real-time visual screencasting via CDP Page.startScreencast.
    */
   async startScreencast(onFrame: (data: string, metadata: any) => void): Promise<void> {

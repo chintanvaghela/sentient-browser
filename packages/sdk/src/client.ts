@@ -76,6 +76,11 @@ export class RemoteSentientPage {
     return this.client.call('solve', { pageId: this.pageId, goal });
   }
 
+  async screenshot(options?: { format?: 'jpeg' | 'png'; quality?: number }): Promise<string> {
+    const res = await this.client.call('screenshot', { pageId: this.pageId, options });
+    return res.data;
+  }
+
   async close(): Promise<void> {
     await this.client.call('closePage', { pageId: this.pageId });
   }
@@ -164,5 +169,9 @@ export class SentientClient {
       this.ws.close();
       this.ws = null;
     }
+  }
+
+  async close(): Promise<void> {
+    this.disconnect();
   }
 }

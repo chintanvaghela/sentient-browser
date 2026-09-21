@@ -1,0 +1,30 @@
+{
+  "name": "@sentient/mcp",
+  "version": "0.1.0",
+  "description": "Model Context Protocol (MCP) Server for Sentient Browser",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "sentient-mcp": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts",
+    "dev": "tsup src/index.ts --format esm,cjs --dts --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@sentient/core": "workspace:*",
+    "@sentient/sdk": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4"
+  }
+}
