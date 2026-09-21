@@ -71,6 +71,9 @@ export interface SemanticNode {
 
   /** Child semantic nodes (hierarchical view) */
   children?: SemanticNode[];
+
+  /** Precomputed 32-bit FNV-1a fingerprint for O(1) state diff comparison */
+  fingerprint?: number;
 }
 
 export interface SemanticSnapshot {

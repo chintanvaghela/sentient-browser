@@ -1,10 +1,12 @@
 import { SemanticNode, SemanticSnapshot } from '../semantic/types.js';
 import { NodeDelta, PropertyChange, StateDiff } from './types.js';
+import { computeNodeFingerprint } from './merkle.js';
 
 let diffCounter = 0;
 
 /**
  * Computes atomic difference between previous semantic snapshot and current snapshot.
+ * Utilizes 32-bit FNV-1a node fingerprinting to bypass property comparisons in O(1) time.
  */
 export function computeStateDiff(
   previous: SemanticSnapshot | null,
@@ -12,10 +14,12 @@ export function computeStateDiff(
 ): StateDiff {
   const deltas: NodeDelta[] = [];
   const prevMap = new Map<string, SemanticNode>();
+  const prevFingerprints = new Map<string, number>();
 
   if (previous) {
     for (const node of previous.nodes) {
       prevMap.set(node.id, node);
+      prevFingerprints.set(node.id, node.fingerprint ?? computeNodeFingerprint(node));
     }
   }
 
@@ -34,6 +38,15 @@ export function computeStateDiff(
         node: node
       });
     } else {
+      // Fast-path: O(1) integer fingerprint comparison
+      const prevFp = prevFingerprints.get(node.id);
+      const currFp = node.fingerprint ?? computeNodeFingerprint(node);
+
+      if (prevFp === currFp) {
+        // Node is identical, skip detailed property diffing
+        continue;
+      }
+
       // Check for property changes
       const changes: Record<string, PropertyChange> = {};
 
