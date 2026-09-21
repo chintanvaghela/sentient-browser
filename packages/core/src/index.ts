@@ -24,3 +24,5 @@ export * from './agent/planner.js';
 export * from './agent/heap.js';
 export * from './diff/merkle.js';
 export * from './semantic/spatial.js';
+export * from './pool/index.js';
+

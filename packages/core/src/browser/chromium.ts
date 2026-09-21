@@ -450,6 +450,29 @@ export class ChromiumManager {
   }
 
   /**
+   * Creates an isolated browser context with injected runtime scripts.
+   */
+  async newContext(options: { viewport?: { width: number; height: number } } = {}): Promise<BrowserContext> {
+    if (!this.browser || !this.browser.isConnected()) {
+      await this.launch();
+    }
+    const ctx = await this.browser!.newContext({
+      viewport: options.viewport || { width: 1280, height: 720 }
+    });
+    await ctx.addInitScript(SENTIENT_INJECTED_SCRIPT);
+    return ctx;
+  }
+
+  /**
+   * Creates a new SentientPage inside a specific BrowserContext.
+   */
+  async newPageInContext(context: BrowserContext): Promise<SentientPage> {
+    const page = await context.newPage();
+    const cdp = await context.newCDPSession(page);
+    return new SentientPage(page, cdp, this.memory, this.cache);
+  }
+
+  /**
    * Creates a new page attached to a direct CDP session and shared memory store.
    */
   async newPage(): Promise<SentientPage> {

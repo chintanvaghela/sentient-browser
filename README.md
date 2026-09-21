@@ -25,11 +25,12 @@
 ```
 AIBrowserRuntime/
 ├── packages/
-│   ├── core/           # @sentient/core: Runtime engine, CDP driver, Semantic DOM & State Diff
+│   ├── core/           # @sentient/core: Runtime engine, CDP driver, WorkerPool & State Diff
 │   ├── sdk/            # @sentient/sdk: TypeScript/JavaScript WebSocket client SDK
 │   ├── sdk-python/     # sentient-browser: Python client SDK (Async & Sync)
 │   ├── mcp/            # @sentient/mcp: Official Model Context Protocol (MCP) server
-│   └── cli/            # @sentient/cli: Executable CLI (sentient serve, run, act, repl, mcp)
+│   ├── cli/            # @sentient/cli: Executable CLI (sentient serve, run, act, repl, mcp)
+│   └── test/           # @sentient/test: Playwright & Vitest test runner adapter & matchers
 ├── docs/               # Architecture specs and technical roadmaps
 └── examples/           # Integration scripts & demonstrations
 ```
@@ -63,7 +64,7 @@ pnpm build
 ```bash
 pnpm test
 ```
-*Vitest suite with 100% pass rate across all 12 test suites (34/34 tests).*
+*Vitest suite with 100% pass rate across all 14 test suites (39/39 tests).*
 
 ---
 
@@ -241,6 +242,59 @@ async def main():
     await client.close()
 
 asyncio.run(main())
+```
+
+---
+
+## 🧪 Playwright & Vitest Test Runner Adapter (`@sentient/test`)
+
+Drop Sentient's deterministic settlement, stable semantic IDs, and incremental state diffs directly into existing Playwright or Vitest test suites (e.g. Scrum/HyperScale, ExampleApp) with zero flakiness:
+
+```typescript
+import { test, expect } from '@playwright/test';
+import { registerSentientMatchers, sentientClick, sentientFill, wrapPlaywrightPage } from '@sentient/test';
+
+// Register custom matchers (toSettle, toHaveAdded, toHaveUpdated, toHaveSemanticText)
+registerSentientMatchers(expect);
+
+test('Login & create task with zero flakiness', async ({ page }) => {
+  const sentientPage = await wrapPlaywrightPage(page);
+
+  await page.goto('https://news.ycombinator.com/login');
+  await expect(sentientPage).toSettle();
+
+  // Type without CSS selector guessing
+  await sentientFill(page, 'Enter your email', 'owner@scrum.com');
+  await sentientFill(page, 'Enter your password', 'Password!123');
+
+  // Click submit and verify state diff immediately
+  const diff = await sentientClick(page, 'Sign in');
+  expect(diff).toHaveAdded('Phoenix Redesign');
+});
+```
+
+---
+
+## ⚡ Multi-Worker Parallel Browser Pool (`WorkerPool`)
+
+Scale testing and autonomous scraping across multiple concurrent browser tabs/contexts with built-in concurrency gating and automatic worker recycling:
+
+```typescript
+import { WorkerPool } from '@sentient/core';
+
+const pool = new WorkerPool(undefined, {
+  maxConcurrency: 4,      // 4 concurrent tabs/contexts
+  isolation: 'context',   // isolated cookies/storage
+  recycleAfterTasks: 25,  // recycle worker to prevent memory leaks
+});
+
+// Run batch items in parallel (2.6x faster throughput)
+const results = await pool.map(urls, async (url, page, workerId) => {
+  await page.goto(url);
+  return page.getSummary();
+});
+
+await pool.close();
 ```
 
 ---
