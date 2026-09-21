@@ -25,13 +25,31 @@ export class IntentEngine {
   ) {}
 
   private async queryTarget(target: string): Promise<any> {
-    return this.page.evaluate((tgt) => {
+    return this.page.evaluate(async (tgt) => {
       const finder = (window as any).__sentient_find_target;
       const el = finder ? finder(tgt) : null;
       if (!el) return { found: false };
 
-      // Scroll into view if needed
-      el.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' });
+      // Bug 1 fix: Check if the element is inside a position: fixed ancestor
+      const isInsideFixed = (() => {
+        let curr: Element | null = el;
+        while (curr && curr !== document.body && curr !== document.documentElement) {
+          try {
+            if (window.getComputedStyle(curr).position === 'fixed') return true;
+          } catch (_) {}
+          curr = curr.parentElement;
+        }
+        return false;
+      })();
+
+      if (!isInsideFixed) {
+        el.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' });
+        // Bug 2 fix: Allow browser to commit scroll position and repaint layout
+        await new Promise<void>((r) => requestAnimationFrame(() => requestAnimationFrame(() => r())));
+      } else {
+        // Even for fixed elements, allow layout commit before measuring
+        await new Promise<void>((r) => requestAnimationFrame(() => r()));
+      }
 
       const style = window.getComputedStyle(el);
       const visible = style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
@@ -54,12 +72,23 @@ export class IntentEngine {
   /**
    * Resolves target element, scrolls into view if needed, and returns bounding box.
    */
-  private async resolveTarget(target: string): Promise<{ x: number; y: number; width: number; height: number }> {
+  private async resolveTarget(target: string, timeoutMs: number = 2500): Promise<{ x: number; y: number; width: number; height: number }> {
     let res = await this.queryTarget(target);
 
     // Self-healing: if target not found immediately, re-run extractor to re-stamp data-sentient-id attributes
     if (!res.found) {
       await this.page.evaluate(IN_PAGE_EXTRACTOR_SCRIPT).catch(() => {});
+      res = await this.queryTarget(target);
+    }
+
+    // Modal/portal animation tolerance: wait for transition/opening animation if element is zero-dimensioned
+    const startTime = Date.now();
+    while (
+      res.found &&
+      (!res.visible || res.bbox.width === 0 || res.bbox.height === 0) &&
+      Date.now() - startTime < timeoutMs
+    ) {
+      await new Promise((r) => setTimeout(r, 50));
       res = await this.queryTarget(target);
     }
 

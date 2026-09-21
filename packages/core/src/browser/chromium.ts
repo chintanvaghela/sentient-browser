@@ -8,6 +8,7 @@ import { SemanticSnapshot } from '../semantic/types.js';
 import { computeStateDiff } from '../diff/engine.js';
 import { StateDiff } from '../diff/types.js';
 import { WaitEngine } from '../wait/engine.js';
+import type { WaitOptions } from '../wait/types.js';
 import { IntentEngine } from '../intent/engine.js';
 import { ClickOptions, FillOptions, ScrollOptions } from '../intent/types.js';
 import { MemoryStore } from '../memory/store.js';
@@ -102,6 +103,13 @@ export class SentientPage {
    */
   clearMemory(): void {
     this.memory.clear();
+  }
+
+  /**
+   * Waits for the page to reach deterministic settlement.
+   */
+  async waitForSettlement(options?: WaitOptions): Promise<void> {
+    return this.waitEngine.waitForSettlement(options);
   }
 
   /**

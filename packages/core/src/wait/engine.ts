@@ -20,18 +20,28 @@ export class WaitEngine {
    */
   async waitForSettlement(options: WaitOptions = {}): Promise<void> {
     const profile = options.profile || 'default';
+    const scope = options.scope || 'local';
     const timeoutMs = options.timeoutMs || 10000;
     const quietWindowMs =
       options.quietWindowMs || (profile === 'eager' ? 50 : profile === 'strict' ? 300 : 100);
+
+    // For global scope (e.g. tracking portal transitions), wait at least 1 RAF frame so React/CSS transitions can register
+    if (scope === 'global') {
+      await this.page.evaluate(() => {
+        return new Promise<void>((resolve) => {
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+        });
+      }).catch(() => {});
+    }
 
     const startTime = Date.now();
     const pollInterval = 25;
 
     while (Date.now() - startTime < timeoutMs) {
       // 1. Query settlement state from page
-      const status = await this.page.evaluate(() => {
+      const status = await this.page.evaluate((opts) => {
         if (typeof (window as any).__sentient_get_settlement === 'function') {
-          return (window as any).__sentient_get_settlement();
+          return (window as any).__sentient_get_settlement(opts);
         }
         return {
           inFlightRequests: 0,
@@ -39,12 +49,14 @@ export class WaitEngine {
           timeSinceNetActivity: 1000,
           activeAnimations: 0
         };
-      });
+      }, { scope });
 
       const elapsed = Date.now() - startTime;
       const isNetworkQuiet = status.inFlightRequests === 0 || (elapsed > 400 && status.timeSinceLastMutation >= quietWindowMs);
       const isDomQuiet = status.timeSinceLastMutation >= quietWindowMs;
-      const isAnimationsQuiet = profile === 'eager' || status.activeAnimations === 0 || (elapsed > 500);
+      const isAnimationsQuiet = profile === 'eager' && scope !== 'global'
+        ? true
+        : status.activeAnimations === 0 || (elapsed > 1500);
 
       if (isNetworkQuiet && isDomQuiet && isAnimationsQuiet) {
         // Double RAF flush to ensure layout and rendering are fully painted
@@ -63,7 +75,7 @@ export class WaitEngine {
 
     // If timeout reached, construct diagnostic message
     const finalStatus = await this.page
-      .evaluate(() => (window as any).__sentient_get_settlement?.())
+      .evaluate((opts) => (window as any).__sentient_get_settlement?.(opts), { scope })
       .catch(() => undefined);
 
     const diagnostic = finalStatus
