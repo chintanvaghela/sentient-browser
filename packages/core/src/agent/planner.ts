@@ -1,5 +1,6 @@
 import type { SentientPage } from '../browser/chromium.js';
 import type { PlannerGoal, PlannerResult, PlannerStep, PlannerStepAction } from './types.js';
+import { MaxHeap } from './heap.js';
 
 /**
  * Autonomous Goal Planner that takes a natural language objective,
@@ -222,8 +223,7 @@ Respond with a JSON object containing your reasoning and your chosen next action
         !clickedTargets.has(n.id)
     );
 
-    let bestCandidate: any = null;
-    let maxScore = -1;
+    const heap = new MaxHeap<any>();
 
     for (const cand of candidates) {
       let score = 0;
@@ -234,24 +234,26 @@ Respond with a JSON object containing your reasoning and your chosen next action
         if (idLower.includes(kw)) score += 3;
         if (textLower.includes(kw)) score += 2;
 
-        const syns = synonymMap[kw] || [];
-        for (const syn of syns) {
-          if (idLower.includes(syn)) score += 2;
-          if (textLower.includes(syn)) score += 1.5;
+        const syns = synonymMap[kw];
+        if (syns) {
+          for (const syn of syns) {
+            if (idLower.includes(syn)) score += 2;
+            if (textLower.includes(syn)) score += 1.5;
+          }
         }
       }
 
-      if (score > maxScore) {
-        maxScore = score;
-        bestCandidate = cand;
+      if (score > 0) {
+        heap.push(cand, score);
       }
     }
 
-    if (bestCandidate && maxScore > 0) {
+    const best = heap.pop();
+    if (best && best.priority > 0) {
       return {
         type: 'click',
-        target: bestCandidate.id,
-        reasoning: `Selected candidate "${bestCandidate.id}" with score ${maxScore}.`
+        target: best.item.id,
+        reasoning: `Selected candidate "${best.item.id}" with score ${best.priority}.`
       };
     }
 

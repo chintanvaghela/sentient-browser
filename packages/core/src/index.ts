@@ -21,3 +21,6 @@ export * from './intent/history.js';
 export * from './memory/cache.js';
 export * from './agent/types.js';
 export * from './agent/planner.js';
+export * from './agent/heap.js';
+export * from './diff/merkle.js';
+export * from './semantic/spatial.js';

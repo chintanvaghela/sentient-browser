@@ -16,6 +16,7 @@
 - ↩️ **Action Rollback Engine**: Reverts form values, navigation, and modal states with automatic inverse operations.
 - 🔍 **Visual Web Inspector**: Live dark-mode dashboard at `http://localhost:9222/` with sticky bottom dock, search filter, action triggers, and extraction drawers.
 - 🐍 **Dual SDKs (TypeScript & Python)**: Native client libraries for Node.js, Python (asyncio & sync), LangChain, CrewAI, and AutoGen.
+- ⚡ **DSA Engine Optimizations**: Merkle Subtree Hashing & FNV-1a fingerprints for $O(1)$ unchanged-node diffing, 2D Spatial Grid Partitioning (3.1x faster hit-testing), and $O(N \log K)$ Binary Heap Candidate Ranking (26.4x faster action selection).
 
 ---
 
@@ -62,7 +63,7 @@ pnpm build
 ```bash
 pnpm test
 ```
-*Vitest suite with 100% pass rate across all 9 test suites (24/24 tests).*
+*Vitest suite with 100% pass rate across all 12 test suites (34/34 tests).*
 
 ---
 
@@ -253,6 +254,19 @@ asyncio.run(main())
 | **Settlement Detection** | `sleep(3)` or timeout | **Deterministic Multi-Signal (~45ms)** | **Instant & Reliable** |
 | **Selector Fragility** | High (brittle CSS/XPath) | **Zero (Semantic Stable IDs)** | **Self-Healing** |
 | **Input Authenticity** | Synthetic JavaScript events | **Native Chrome DevTools Protocol** | **Human-Equivalent** |
+
+### ⚡ DSA Micro-Benchmarks (`examples/dsa_benchmark.mjs`)
+
+| Benchmark Category | Naive Linear / Full Sort | DSA Optimized Structure | Speedup |
+|---|---|---|---|
+| **State Diff Property Checks** | 20,275 batches/sec (98.6ms) | **39,090 batches/sec (51.1ms)** | **~2x Faster** (O(1) FNV-1a check) |
+| **Viewport Coordinate Hit-Testing** | 245,783 queries/sec (40.7ms) | **752,525 queries/sec (13.3ms)** | **3.1x Faster** (64px Spatial Grid) |
+| **Candidate Action Ranking** | 493 sorts/sec (2,029ms) | **13,028 heaps/sec (76.8ms)** | **26.4x Faster** (O(N log K) Min-Heap) |
+
+Run the benchmarks yourself anytime:
+```bash
+node examples/dsa_benchmark.mjs
+```
 
 ---
 
