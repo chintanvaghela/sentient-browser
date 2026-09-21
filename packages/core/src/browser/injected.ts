@@ -160,6 +160,40 @@ export const SENTIENT_INJECTED_SCRIPT = `
   let cachedIndexVersion = -1;
   let cachedIndex = null;
 
+  function isVisible(el) {
+    if (!el) return false;
+    try {
+      const style = window.getComputedStyle(el);
+      if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
+        return false;
+      }
+      const rect = el.getBoundingClientRect();
+      return rect.width > 0 && rect.height > 0;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  function toSlug(str) {
+    if (!str || typeof str !== 'string') return '';
+    return str
+      .replace(/[^a-zA-Z0-9_ -]/g, ' ')
+      .trim()
+      .replace(/[ _-]+/g, '_');
+  }
+
+  function indexSet(map, key, el) {
+    if (!key) return;
+    if (!map.has(key)) {
+      map.set(key, el);
+    } else {
+      const existing = map.get(key);
+      if (!isVisible(existing) && isVisible(el)) {
+        map.set(key, el);
+      }
+    }
+  }
+
   function buildInvertedIndex() {
     const exactMap = new Map();
     const slugMap = new Map();
@@ -169,17 +203,17 @@ export const SENTIENT_INJECTED_SCRIPT = `
       // 1. data-sentient-id
       const sid = el.getAttribute('data-sentient-id');
       if (sid) {
-        exactMap.set(sid.toLowerCase(), el);
-        slugMap.set(sid.toLowerCase(), el);
+        indexSet(exactMap, sid.toLowerCase(), el);
+        indexSet(slugMap, sid.toLowerCase(), el);
       }
 
       // 2. id and data-testid
-      if (el.id) exactMap.set(el.id.toLowerCase(), el);
+      if (el.id) indexSet(exactMap, el.id.toLowerCase(), el);
       const testId = el.getAttribute('data-testid');
-      if (testId) exactMap.set(testId.toLowerCase(), el);
+      if (testId) indexSet(exactMap, testId.toLowerCase(), el);
 
       // 3. text, placeholder, aria-label, name, title
-      const texts = [
+      const rawTexts = [
         el.innerText,
         el.value,
         el.getAttribute('placeholder'),
@@ -188,16 +222,36 @@ export const SENTIENT_INJECTED_SCRIPT = `
         el.getAttribute('title')
       ];
 
-      for (const t of texts) {
-        if (!t) continue;
+      const span = el.querySelector('span');
+      if (span && span.innerText) {
+        rawTexts.push(span.innerText);
+      }
+
+      for (const t of rawTexts) {
+        if (!t || typeof t !== 'string') continue;
         const clean = t.toLowerCase().trim();
-        if (clean && !exactMap.has(clean)) {
-          exactMap.set(clean, el);
+        if (!clean) continue;
+
+        indexSet(exactMap, clean, el);
+        const slug = toSlug(clean);
+        if (slug) {
+          indexSet(slugMap, slug, el);
         }
-        // Normalize slug
-        const slug = clean.replace(/[^\w\s-]/g, '').trim().replace(/[\s_-]+/g, '_');
-        if (slug && !slugMap.has(slug)) {
-          slugMap.set(slug, el);
+
+        // If multi-line, index each line separately
+        const newlineChar = String.fromCharCode(10);
+        if (clean.indexOf(newlineChar) !== -1) {
+          const lines = clean.split(newlineChar);
+          for (const line of lines) {
+            const trimmedLine = line.trim();
+            if (trimmedLine) {
+              indexSet(exactMap, trimmedLine, el);
+              const lineSlug = toSlug(trimmedLine);
+              if (lineSlug) {
+                indexSet(slugMap, lineSlug, el);
+              }
+            }
+          }
         }
       }
     }
@@ -210,8 +264,8 @@ export const SENTIENT_INJECTED_SCRIPT = `
   window.__sentient_find_target = function(target) {
     if (!target) return null;
 
-    // Fast-Path: Direct CSS selector match (if starts with # or contains specific characters)
-    if (target.startsWith('#') || target.startsWith('.') || target.includes('>')) {
+    // Fast-Path: Direct CSS selector match (if starts with # or . or contains selector characters)
+    if (target.startsWith('#') || target.startsWith('.') || target.includes('>') || target.includes('[') || target.includes(':')) {
       try {
         let el = document.querySelector(target);
         if (el) return el;
@@ -224,36 +278,46 @@ export const SENTIENT_INJECTED_SCRIPT = `
     }
 
     const cleanTarget = target.toLowerCase().trim();
+    const targetSlug = toSlug(cleanTarget);
+    const deSlugged = cleanTarget.replace(/_(button|link|textbox|heading|dialog|select)$/, '').replace(/_/g, ' ').trim();
 
-    // 1. Exact O(1) hash lookup in Inverted Index
-    let el = cachedIndex.exactMap.get(cleanTarget);
-    if (el) return el;
+    // 1. Exact O(1) hash lookup
+    const exactCandidate = cachedIndex.exactMap.get(cleanTarget);
+    if (exactCandidate && isVisible(exactCandidate)) return exactCandidate;
 
     // 2. Normalized Slug O(1) hash lookup
-    const normalizedSlug = cleanTarget.replace(/[^\w\s-]/g, '').trim().replace(/[\s_-]+/g, '_');
-    if (normalizedSlug) {
-      el = cachedIndex.slugMap.get(normalizedSlug);
-      if (el) return el;
+    if (targetSlug) {
+      const slugCandidate = cachedIndex.slugMap.get(targetSlug);
+      if (slugCandidate && isVisible(slugCandidate)) return slugCandidate;
     }
 
     // 3. De-slugged lookup
-    const deSlugged = cleanTarget.replace(/_(button|link|textbox|heading|dialog|select)$/, '').replace(/_/g, ' ').trim();
     if (deSlugged && deSlugged !== cleanTarget) {
-      el = cachedIndex.exactMap.get(deSlugged) || cachedIndex.slugMap.get(deSlugged);
-      if (el) return el;
+      const deSlugCandidate = cachedIndex.exactMap.get(deSlugged) || (toSlug(deSlugged) ? cachedIndex.slugMap.get(toSlug(deSlugged)) : null);
+      if (deSlugCandidate && isVisible(deSlugCandidate)) return deSlugCandidate;
     }
 
-    // 4. Fallback CSS selector
+    // 4. Linear contains check over candidates (strictly visible elements first)
+    for (const cand of cachedIndex.candidates) {
+      if (!isVisible(cand)) continue;
+      const text = (cand.innerText || cand.value || cand.getAttribute('placeholder') || cand.getAttribute('aria-label') || '').toLowerCase();
+      if (text.includes(cleanTarget) || (targetSlug && toSlug(text).includes(targetSlug))) {
+        return cand;
+      }
+    }
+
+    // 5. Fallback CSS selector
     try {
-      el = document.querySelector(target);
-      if (el) return el;
+      let el = document.querySelector(target);
+      if (el && isVisible(el)) return el;
     } catch (_) {}
 
-    // 5. Linear contains fallback over candidate list
-    for (const cand of cachedIndex.candidates) {
-      const text = (cand.innerText || cand.value || cand.getAttribute('placeholder') || cand.getAttribute('aria-label') || '').toLowerCase();
-      if (text.includes(cleanTarget)) return cand;
-    }
+    // 6. Last resort: return non-visible candidate if any was found
+    if (exactCandidate) return exactCandidate;
+    if (targetSlug && cachedIndex.slugMap.get(targetSlug)) return cachedIndex.slugMap.get(targetSlug);
+    try {
+      return document.querySelector(target);
+    } catch (_) {}
 
     return null;
   };
