@@ -12,3 +12,5 @@ export * from './browser/injected.js';
 export * from './server/websocket.js';
 export * from './memory/types.js';
 export * from './memory/store.js';
+export * from './semantic/extract.js';
+export * from './browser/scheduler.js';

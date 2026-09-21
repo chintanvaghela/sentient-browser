@@ -11,6 +11,8 @@ import { WaitEngine } from '../wait/engine.js';
 import { IntentEngine } from '../intent/engine.js';
 import { ClickOptions, FillOptions, ScrollOptions } from '../intent/types.js';
 import { MemoryStore } from '../memory/store.js';
+import { extractLinks, extractTable, extractList, extractSummary, type PageLink, type PageSummary } from '../semantic/extract.js';
+import { ParallelScheduler, type SchedulerOptions, type TaskResult } from './scheduler.js';
 
 export interface LaunchOptions {
   headless?: boolean;
@@ -168,6 +170,34 @@ export class SentientPage {
   }
 
   /**
+   * Extracts clean HTTP/HTTPS links from the page.
+   */
+  async extractLinks(): Promise<PageLink[]> {
+    return extractLinks(this.page);
+  }
+
+  /**
+   * Extracts tabular data from table elements into JSON objects.
+   */
+  async extractTable(selector?: string): Promise<Array<Record<string, string>>> {
+    return extractTable(this.page, selector);
+  }
+
+  /**
+   * Extracts list items from ul/ol elements.
+   */
+  async extractList(selector?: string): Promise<string[]> {
+    return extractList(this.page, selector);
+  }
+
+  /**
+   * Extracts a semantic summary of the page (title, headings, text, top links).
+   */
+  async getSummary(): Promise<PageSummary> {
+    return extractSummary(this.page);
+  }
+
+  /**
    * Closes the page.
    */
   async close(): Promise<void> {
@@ -185,6 +215,24 @@ export class ChromiumManager {
 
   constructor(options: { persistMemoryPath?: string } = {}) {
     this.memory = new MemoryStore({ persistPath: options.persistMemoryPath });
+  }
+
+  /**
+   * Creates a parallel task scheduler using this browser instance.
+   */
+  createScheduler(): ParallelScheduler {
+    return new ParallelScheduler(this);
+  }
+
+  /**
+   * Executes tasks across multiple URLs in parallel with controlled concurrency.
+   */
+  async mapPages<T>(
+    urls: string[],
+    task: (page: SentientPage, url: string) => Promise<T>,
+    options?: SchedulerOptions
+  ): Promise<Array<TaskResult<T>>> {
+    return this.createScheduler().map(urls, task, options);
   }
 
   /**
