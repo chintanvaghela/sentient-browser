@@ -129,13 +129,79 @@ export class SentientServer {
       case 'hover': {
         const page = this.getPage(params.pageId);
         const diff = await page.hover(params.target);
+        if (diff && diff.operationsCount > 0) {
+          ws.send(JSON.stringify({
+            jsonrpc: '2.0',
+            method: 'event.domDiff',
+            params: { pageId: params.pageId, diff }
+          }));
+        }
         return { status: 'success', diff };
       }
 
       case 'scroll': {
         const page = this.getPage(params.pageId);
         const diff = await page.scroll(params.options || {});
+        if (diff && diff.operationsCount > 0) {
+          ws.send(JSON.stringify({
+            jsonrpc: '2.0',
+            method: 'event.domDiff',
+            params: { pageId: params.pageId, diff }
+          }));
+        }
         return { status: 'success', diff };
+      }
+
+      case 'getSummary': {
+        const page = this.getPage(params.pageId);
+        return await page.getSummary();
+      }
+
+      case 'extractTable': {
+        const page = this.getPage(params.pageId);
+        return await page.extractTable(params.selector);
+      }
+
+      case 'extractList': {
+        const page = this.getPage(params.pageId);
+        return await page.extractList(params.selector);
+      }
+
+      case 'extractLinks': {
+        const page = this.getPage(params.pageId);
+        return await page.extractLinks();
+      }
+
+      case 'rollback': {
+        const page = this.getPage(params.pageId);
+        const diff = await page.rollback();
+        if (diff && diff.operationsCount > 0) {
+          ws.send(JSON.stringify({
+            jsonrpc: '2.0',
+            method: 'event.domDiff',
+            params: { pageId: params.pageId, diff }
+          }));
+        }
+        return { status: 'success', diff };
+      }
+
+      case 'solve': {
+        const page = this.getPage(params.pageId);
+        const goalInput = typeof params.goal === 'string' ? { goal: params.goal } : (params.goal || {});
+        const goal = {
+          ...goalInput,
+          onStep: (step: any) => {
+            goalInput.onStep?.(step);
+            try {
+              ws.send(JSON.stringify({
+                jsonrpc: '2.0',
+                method: 'event.agentStep',
+                params: { pageId: params.pageId, step }
+              }));
+            } catch (_) {}
+          }
+        };
+        return await page.solve(goal);
       }
 
       case 'closePage': {

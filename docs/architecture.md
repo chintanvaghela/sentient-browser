@@ -144,13 +144,33 @@ graph TD
 
 ---
 
-### 2.8. Sentient Agent SDK (`@sentient/sdk`)
-* **Role**: The clean, ergonomic client library imported by AI agent frameworks.
+### 2.8. Sentient Agent SDKs (`@sentient/sdk` & `packages/sdk-python`)
+* **Role**: The clean, ergonomic client libraries imported by AI agent frameworks (Node.js & Python).
 * **Key Responsibilities**:
-  * TypeScript client with simple async/await methods.
-  * Connection management to local daemon or embedded runtime.
-  * Strong typing for semantic nodes, state diffs, and intent actions.
-  * Event listener subscriptions (`page.onDiff(...)`, `page.onModal(...)`).
+  * **TypeScript**: Async/await methods, PubSub diff and agent step subscriptions (`@sentient/sdk`).
+  * **Python**: Dual `SentientClient` (asyncio) and `SyncSentientClient` (blocking scripts / Jupyter notebooks / LangChain / CrewAI).
+  * Strong typing for semantic nodes, snapshots, state diffs, and planner results.
+
+---
+
+### 2.9. Autonomous Goal Planner (`@sentient/core/agent`)
+* **Role**: Orchestrates autonomous goal resolution directly from natural language objectives.
+* **Key Responsibilities**:
+  * Evaluates current pruned Semantic DOM against objective.
+  * Reasons about candidate elements using semantic weights, synonym matching, and context heuristics (with zero external API key requirements).
+  * Supports custom LLM callers (`llmCaller: (prompt) => Promise<string>`) for complex multi-step reasoning.
+  * Tracks step progress, handles stuck-loop detection, and executes self-healing rollbacks on dead ends.
+
+---
+
+### 2.10. Action Journal & Rollback Engine (`@sentient/core/intent/history`)
+* **Role**: Maintains a reversibility stack for browser interactions.
+* **Key Responsibilities**:
+  * Logs inverse operations for executed actions:
+    * `fill`: Preserves previous input value and restores it on rollback.
+    * `goto` / navigation: Dispatches browser back navigation.
+    * `click` (modals/popups): Emits `Escape` key events to dismiss overlays.
+  * Enables agents to explore risky interactions with instant undo guarantees.
 
 ---
 

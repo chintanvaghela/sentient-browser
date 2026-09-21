@@ -17,6 +17,11 @@ import { PluginRegistry } from '../plugins/registry.js';
 import { HackerNewsPlugin } from '../plugins/builtin/hacker_news.js';
 import type { SitePlugin } from '../plugins/types.js';
 
+import { ActionJournal } from '../intent/history.js';
+import { AutonomousPlanner } from '../agent/planner.js';
+import type { PlannerGoal, PlannerResult } from '../agent/types.js';
+import { SemanticCache } from '../memory/cache.js';
+
 // Auto-register default built-in plugins
 PluginRegistry.register(HackerNewsPlugin);
 
@@ -63,14 +68,17 @@ export class SentientPage {
   private waitEngine: WaitEngine;
   private intentEngine: IntentEngine;
   private lastSnapshot: SemanticSnapshot | null = null;
+  public journal: ActionJournal;
 
   constructor(
     public page: Page,
     public cdp: CDPSession,
-    public memory: MemoryStore = new MemoryStore()
+    public memory: MemoryStore = new MemoryStore(),
+    public cache?: SemanticCache
   ) {
     this.waitEngine = new WaitEngine(page, cdp);
     this.intentEngine = new IntentEngine(page, cdp, this.waitEngine);
+    this.journal = new ActionJournal();
   }
 
   /**
@@ -97,7 +105,16 @@ export class SentientPage {
   /**
    * Navigates to a URL and waits for settlement.
    */
-  async goto(url: string, options: { timeoutMs?: number } = {}): Promise<SemanticSnapshot> {
+  async goto(url: string, options: { timeoutMs?: number; useCache?: boolean } = {}): Promise<SemanticSnapshot> {
+    const urlBefore = this.page.url();
+    if (options.useCache && this.cache) {
+      const cached = this.cache.get(url);
+      if (cached) {
+        this.lastSnapshot = cached;
+        return cached;
+      }
+    }
+
     await this.page.goto(url, {
       waitUntil: 'commit',
       timeout: options.timeoutMs || 30000
@@ -106,12 +123,25 @@ export class SentientPage {
     await this.waitEngine.waitForSettlement({ timeoutMs: options.timeoutMs });
     const snapshot = await this.getSemanticDOM();
 
+    if (this.cache) {
+      this.cache.set(url, snapshot);
+    }
+
     // Automatically record visited page in memory
     this.memory.recordVisit({
       url: snapshot.url,
       title: snapshot.title,
       timestamp: Date.now(),
       interactiveCount: snapshot.interactiveCount
+    });
+
+    this.journal.push({
+      id: Math.random().toString(36).slice(2),
+      timestamp: Date.now(),
+      type: 'goto',
+      urlBefore,
+      urlAfter: snapshot.url,
+      prevSnapshot: snapshot
     });
 
     return snapshot;
@@ -140,9 +170,23 @@ export class SentientPage {
    */
   async click(target: string, options?: ClickOptions): Promise<StateDiff> {
     const prev = this.lastSnapshot;
+    const urlBefore = this.page.url();
     await this.intentEngine.click(target, options);
     const curr = await this.getSemanticDOM();
-    return computeStateDiff(prev, curr);
+    const diff = computeStateDiff(prev, curr);
+
+    this.journal.push({
+      id: Math.random().toString(36).slice(2),
+      timestamp: Date.now(),
+      type: 'click',
+      target,
+      urlBefore,
+      urlAfter: this.page.url(),
+      prevSnapshot: prev || undefined,
+      diff
+    });
+
+    return diff;
   }
 
   /**
@@ -150,9 +194,73 @@ export class SentientPage {
    */
   async fill(target: string, text: string, options?: FillOptions): Promise<StateDiff> {
     const prev = this.lastSnapshot;
+    const prevNode = prev?.nodes.find((n) => n.id === target);
+    const prevValue = prevNode?.value || '';
+
     await this.intentEngine.fill(target, text, options);
     const curr = await this.getSemanticDOM();
+    const diff = computeStateDiff(prev, curr);
+
+    this.journal.push({
+      id: Math.random().toString(36).slice(2),
+      timestamp: Date.now(),
+      type: 'fill',
+      target,
+      prevValue,
+      urlBefore: this.page.url(),
+      prevSnapshot: prev || undefined,
+      diff
+    });
+
+    return diff;
+  }
+
+  /**
+   * Reverts the most recent action executed on this page.
+   * If last action was fill: restores previous field value.
+   * If last action navigated to another page: navigates back.
+   * If last action opened a modal/dialog: dispatches Escape.
+   */
+  async rollback(): Promise<StateDiff> {
+    const record = this.journal.pop();
+    if (!record) {
+      const curr = await this.getSemanticDOM();
+      return computeStateDiff(curr, curr);
+    }
+
+    const prev = this.lastSnapshot;
+
+    if (record.type === 'fill' && record.target) {
+      await this.intentEngine.fill(record.target, record.prevValue || '', { clearFirst: true });
+    } else if (record.type === 'goto' || (record.urlAfter && record.urlBefore !== record.urlAfter)) {
+      await this.page.goBack({ waitUntil: 'commit' }).catch(() => {});
+      await this.waitEngine.waitForSettlement();
+    } else if (record.type === 'click') {
+      await this.cdp.send('Input.dispatchKeyEvent', {
+        type: 'rawKeyDown',
+        key: 'Escape',
+        code: 'Escape',
+        windowsVirtualKeyCode: 27
+      }).catch(() => {});
+      await this.cdp.send('Input.dispatchKeyEvent', {
+        type: 'keyUp',
+        key: 'Escape',
+        code: 'Escape',
+        windowsVirtualKeyCode: 27
+      }).catch(() => {});
+      await this.waitEngine.waitForSettlement({ profile: 'eager' });
+    }
+
+    const curr = await this.getSemanticDOM();
     return computeStateDiff(prev, curr);
+  }
+
+  /**
+   * Solves a high-level natural language goal autonomously.
+   */
+  async solve(goal: PlannerGoal | string): Promise<PlannerResult> {
+    const planner = new AutonomousPlanner(this);
+    return planner.solve(goal);
   }
 
   /**
@@ -225,9 +333,11 @@ export class ChromiumManager {
   private browser: Browser | null = null;
   private context: BrowserContext | null = null;
   public memory: MemoryStore;
+  public cache: SemanticCache;
 
-  constructor(options: { persistMemoryPath?: string } = {}) {
+  constructor(options: { persistMemoryPath?: string; cacheTtlMs?: number } = {}) {
     this.memory = new MemoryStore({ persistPath: options.persistMemoryPath });
+    this.cache = new SemanticCache({ defaultTtlMs: options.cacheTtlMs });
   }
 
   /**
@@ -259,9 +369,7 @@ export class ChromiumManager {
    * Launches Chromium and creates an isolated context.
    */
   async launch(options: LaunchOptions = {}): Promise<void> {
-    if (options.persistMemoryPath) {
-      this.memory = new MemoryStore({ persistPath: options.persistMemoryPath });
-    }
+    if (this.browser) return;
 
     const execPath =
       options.executablePath ||
@@ -291,14 +399,23 @@ export class ChromiumManager {
    * Creates a new page attached to a direct CDP session and shared memory store.
    */
   async newPage(): Promise<SentientPage> {
-    if (!this.context) {
-      throw new Error('Browser is not launched. Call launch() first.');
+    if (!this.browser || !this.browser.isConnected() || !this.context) {
+      await this.launch();
     }
 
-    const page = await this.context.newPage();
-    const cdp = await this.context.newCDPSession(page);
+    let page: Page;
+    let cdp: CDPSession;
+    try {
+      page = await this.context!.newPage();
+      cdp = await this.context!.newCDPSession(page);
+    } catch (_) {
+      await this.close();
+      await this.launch();
+      page = await this.context!.newPage();
+      cdp = await this.context!.newCDPSession(page);
+    }
 
-    return new SentientPage(page, cdp, this.memory);
+    return new SentientPage(page, cdp, this.memory, this.cache);
   }
 
   /**

@@ -134,6 +134,15 @@ export const SENTIENT_INJECTED_SCRIPT = `
       if (text.includes(cleanTarget)) return cand;
     }
 
+    // D. De-slugged match (e.g. "time_tracker_button" -> "time tracker")
+    const deSlugged = cleanTarget.replace(/_(button|link|textbox|heading|dialog|select)$/, '').replace(/_/g, ' ').trim();
+    if (deSlugged && deSlugged !== cleanTarget) {
+      for (const cand of candidates) {
+        const text = (cand.innerText || cand.value || cand.getAttribute('aria-label') || '').toLowerCase().trim();
+        if (text === deSlugged || text.includes(deSlugged)) return cand;
+      }
+    }
+
     return null;
   };
 })();

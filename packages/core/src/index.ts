@@ -17,3 +17,7 @@ export * from './browser/scheduler.js';
 export * from './plugins/types.js';
 export * from './plugins/registry.js';
 export * from './plugins/builtin/hacker_news.js';
+export * from './intent/history.js';
+export * from './memory/cache.js';
+export * from './agent/types.js';
+export * from './agent/planner.js';
