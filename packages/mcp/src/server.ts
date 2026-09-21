@@ -184,6 +184,20 @@ export class SentientMcpServer {
         };
       }
 
+      case 'sentient_diff': {
+        const diff = await page.getDiff();
+        return {
+          content: [
+            {
+              type: 'text',
+              text: diff.compact
+                ? `Incremental State Diff (${diff.operationsCount} ops):\n${diff.compact}`
+                : 'No DOM mutations detected since last action (state unchanged).'
+            }
+          ]
+        };
+      }
+
       case 'sentient_screenshot': {
         const base64 = await page.screenshot({ format: 'jpeg', quality: 80 });
         return {

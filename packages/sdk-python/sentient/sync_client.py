@@ -61,6 +61,18 @@ class SyncRemoteSentientPage:
     def extract_list(self, selector: Optional[str] = None) -> List[str]:
         return self._run(self._async_page.extract_list(selector))
 
+    def screenshot(self, format: str = "jpeg", quality: int = 80) -> str:
+        return self._run(self._async_page.screenshot(format=format, quality=quality))
+
+    def remember(self, key: str, value: Any) -> None:
+        return self._run(self._async_page.remember(key, value))
+
+    def recall(self, key: str) -> Optional[Any]:
+        return self._run(self._async_page.recall(key))
+
+    def clear_memory(self) -> None:
+        return self._run(self._async_page.clear_memory())
+
     def close(self) -> None:
         return self._run(self._async_page.close())
 
