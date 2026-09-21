@@ -113,14 +113,14 @@ export class IntentEngine {
     });
 
     // Automatically wait for settlement post-click
-    await this.waitEngine.waitForSettlement();
+    await this.waitEngine.waitForSettlement({ profile: options.waitProfile || 'default' });
   }
 
   /**
    * Fills an input/textarea element with text.
    */
   async fill(target: string, text: string, options: FillOptions = {}): Promise<void> {
-    await this.click(target);
+    await this.click(target, { waitProfile: options.waitProfile || 'eager' });
 
     // Clear existing text if requested
     if (options.clearFirst !== false) {
@@ -136,6 +136,13 @@ export class IntentEngine {
 
     // Insert text via native CDP
     await this.cdp.send('Input.insertText', { text: text });
+
+    // Double RAF flush for React/Vue component state update
+    await this.page.evaluate(() => {
+      return new Promise<void>((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+      });
+    }).catch(() => {});
 
     if (options.pressEnterAfter) {
       await this.cdp.send('Input.dispatchKeyEvent', {

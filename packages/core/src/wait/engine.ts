@@ -41,9 +41,10 @@ export class WaitEngine {
         };
       });
 
-      const isNetworkQuiet = status.inFlightRequests === 0;
+      const elapsed = Date.now() - startTime;
+      const isNetworkQuiet = status.inFlightRequests === 0 || (elapsed > 400 && status.timeSinceLastMutation >= quietWindowMs);
       const isDomQuiet = status.timeSinceLastMutation >= quietWindowMs;
-      const isAnimationsQuiet = profile === 'eager' || status.activeAnimations === 0;
+      const isAnimationsQuiet = profile === 'eager' || status.activeAnimations === 0 || (elapsed > 500);
 
       if (isNetworkQuiet && isDomQuiet && isAnimationsQuiet) {
         // Double RAF flush to ensure layout and rendering are fully painted

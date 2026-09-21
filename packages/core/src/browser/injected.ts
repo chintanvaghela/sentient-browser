@@ -12,9 +12,18 @@ export const SENTIENT_INJECTED_SCRIPT = `
   window.__sentient_in_flight = 0;
   window.__sentient_last_net_activity = Date.now();
 
+  function isIgnoredNet(url) {
+    if (!url || typeof url !== 'string') return false;
+    return /clarity\.ms|sentry\.io|google-analytics|cloudflareinsights|doubleclick|googletagmanager|hotjar|segment/i.test(url);
+  }
+
   const originalFetch = window.fetch;
   if (originalFetch) {
     window.fetch = async function(...args) {
+      const targetUrl = typeof args[0] === 'string' ? args[0] : (args[0] && args[0].url) || '';
+      if (isIgnoredNet(targetUrl)) {
+        return originalFetch.apply(this, args);
+      }
       window.__sentient_in_flight++;
       window.__sentient_last_net_activity = Date.now();
       try {
@@ -31,12 +40,13 @@ export const SENTIENT_INJECTED_SCRIPT = `
   const originalSend = XMLHttpRequest.prototype.send;
   if (originalOpen && originalSend) {
     XMLHttpRequest.prototype.open = function(...args) {
+      this.__sentient_url = args[1];
       this.__sentient_tracked = false;
       return originalOpen.apply(this, args);
     };
 
     XMLHttpRequest.prototype.send = function(...args) {
-      if (!this.__sentient_tracked) {
+      if (!this.__sentient_tracked && !isIgnoredNet(this.__sentient_url)) {
         this.__sentient_tracked = true;
         window.__sentient_in_flight++;
         window.__sentient_last_net_activity = Date.now();
