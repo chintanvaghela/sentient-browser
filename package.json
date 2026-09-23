@@ -6,6 +6,10 @@
   "description": "An AI-native browser runtime designed for autonomous AI agents",
   "author": "Chintan",
   "license": "MIT",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
   "scripts": {
     "build": "pnpm --filter \"./packages/*\" run build",
     "test": "vitest run",

@@ -38,26 +38,58 @@ export interface LaunchOptions {
  * Searches common Playwright cache directories to find an existing Chromium or headless shell binary.
  */
 export function findCachedChromiumExecutable(): string | undefined {
-  const cacheDir = path.join(os.homedir(), '.cache', 'ms-playwright');
-  if (!fs.existsSync(cacheDir)) return undefined;
+  const home = os.homedir();
+  const cacheDirs: string[] = [];
 
-  try {
-    const entries = fs.readdirSync(cacheDir);
-
-    // Prefer headless shell for lightweight execution
-    const shellDirs = entries.filter((e) => e.startsWith('chromium_headless_shell-')).sort().reverse();
-    for (const dir of shellDirs) {
-      const candidate = path.join(cacheDir, dir, 'chrome-headless-shell-linux64', 'chrome-headless-shell');
-      if (fs.existsSync(candidate)) return candidate;
+  if (process.platform === 'darwin') {
+    cacheDirs.push(path.join(home, 'Library', 'Caches', 'ms-playwright'));
+  } else if (process.platform === 'win32') {
+    if (process.env.LOCALAPPDATA) {
+      cacheDirs.push(path.join(process.env.LOCALAPPDATA, 'ms-playwright'));
     }
+    cacheDirs.push(path.join(home, 'AppData', 'Local', 'ms-playwright'));
+  } else {
+    cacheDirs.push(path.join(home, '.cache', 'ms-playwright'));
+  }
 
-    // Fallback to standard chromium builds
-    const chromeDirs = entries.filter((e) => e.startsWith('chromium-')).sort().reverse();
-    for (const dir of chromeDirs) {
-      const candidate = path.join(cacheDir, dir, 'chrome-linux64', 'chrome');
-      if (fs.existsSync(candidate)) return candidate;
-    }
-  } catch (_) {}
+  for (const cacheDir of cacheDirs) {
+    if (!fs.existsSync(cacheDir)) continue;
+
+    try {
+      const entries = fs.readdirSync(cacheDir);
+
+      // Prefer headless shell for lightweight execution
+      const shellDirs = entries.filter((e) => e.startsWith('chromium_headless_shell-')).sort().reverse();
+      for (const dir of shellDirs) {
+        const candidates = [
+          path.join(cacheDir, dir, 'chrome-headless-shell-linux64', 'chrome-headless-shell'),
+          path.join(cacheDir, dir, 'chrome-headless-shell-mac-arm64', 'chrome-headless-shell'),
+          path.join(cacheDir, dir, 'chrome-headless-shell-mac-x64', 'chrome-headless-shell'),
+          path.join(cacheDir, dir, 'chrome-headless-shell-mac', 'chrome-headless-shell'),
+          path.join(cacheDir, dir, 'chrome-headless-shell-win64', 'chrome-headless-shell.exe'),
+          path.join(cacheDir, dir, 'chrome-headless-shell-win32', 'chrome-headless-shell.exe')
+        ];
+        for (const candidate of candidates) {
+          if (fs.existsSync(candidate)) return candidate;
+        }
+      }
+
+      // Fallback to standard chromium builds
+      const chromeDirs = entries.filter((e) => e.startsWith('chromium-')).sort().reverse();
+      for (const dir of chromeDirs) {
+        const candidates = [
+          path.join(cacheDir, dir, 'chrome-linux64', 'chrome'),
+          path.join(cacheDir, dir, 'chrome-mac', 'Chromium.app', 'Contents', 'MacOS', 'Chromium'),
+          path.join(cacheDir, dir, 'chrome-mac-arm64', 'Chromium.app', 'Contents', 'MacOS', 'Chromium'),
+          path.join(cacheDir, dir, 'chrome-win', 'chrome.exe'),
+          path.join(cacheDir, dir, 'chrome-win64', 'chrome.exe')
+        ];
+        for (const candidate of candidates) {
+          if (fs.existsSync(candidate)) return candidate;
+        }
+      }
+    } catch (_) {}
+  }
 
   return undefined;
 }

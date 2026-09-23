@@ -72,7 +72,7 @@ describe('@sentient/test Playwright Adapter & Matchers', () => {
       <html>
         <head><title>Test Adapter Page</title></head>
         <body>
-          <h1 id="header">Welcome to SprintDesk</h1>
+          <h1 id="header">Welcome to Sentient Test Portal</h1>
           <input id="email" type="text" placeholder="Enter your email" />
           <button id="submit_btn" onclick="document.body.innerHTML += '<p id=success>Submission successful</p>'">Submit</button>
         </body>
@@ -89,7 +89,7 @@ describe('@sentient/test Playwright Adapter & Matchers', () => {
     expect(snapshot.interactiveCount).toBe(2);
 
     // Assert semantic text matcher
-    await (expect(sentientPage) as any).toHaveSemanticText('Welcome to SprintDesk');
+    await (expect(sentientPage) as any).toHaveSemanticText('Welcome to Sentient Test Portal');
 
     // Hover over input
     const hoverDiff = await sentientHover(page, 'Enter your email');
@@ -100,7 +100,7 @@ describe('@sentient/test Playwright Adapter & Matchers', () => {
     expect(scrollDiff).toBeDefined();
 
     // Fill input using sentientFill
-    await sentientFill(page, 'Enter your email', 'developer@scrum.com');
+    await sentientFill(page, 'Enter your email', 'developer@example.com');
 
     // Click submit using sentientClick
     const diff = await sentientClick(page, 'Submit');

@@ -6,7 +6,7 @@ function estimateTokens(text) {
 }
 
 const isLive = process.argv.includes('--live');
-const liveUrl = process.argv.find((a) => a.startsWith('http')) || 'https://sprint-desk.com';
+const liveUrl = process.argv.find((a) => a.startsWith('http')) || 'https://news.ycombinator.com';
 
 async function runComparisonBenchmark() {
   console.log('═══════════════════════════════════════════════════════════════════');

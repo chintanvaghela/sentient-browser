@@ -40,12 +40,12 @@ from sentient import SyncSentientClient
 
 with SyncSentientClient("ws://127.0.0.1:9222") as client:
     page = client.new_page()
-    snapshot = page.goto("https://sprint-desk.com")
+    snapshot = page.goto("https://news.ycombinator.com")
     print(f"Page Title: {snapshot.title}")
     print(f"Interactive Targets: {snapshot.interactive_count}")
 
     # Solve a goal autonomously
-    result = page.solve("Find features of Time Tracker")
+    result = page.solve("Find top story")
     print(f"Goal Result: {result.answer} (took {result.duration_ms}ms in {result.steps_count} steps)")
 
     # Rollback last action
@@ -69,10 +69,10 @@ async def main():
     client.on_diff(lambda diff, page_id: print(f"Diff received: {diff.compact}"))
 
     # Navigate
-    snapshot = await page.goto("https://sprint-desk.com")
+    snapshot = await page.goto("https://news.ycombinator.com")
     
     # Target element click by stable ID
-    diff = await page.click("time_tracker_button")
+    diff = await page.click("comments_link")
     print("Diff after click:", diff.compact)
 
     # Extract structured links

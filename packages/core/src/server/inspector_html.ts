@@ -749,7 +749,7 @@ export const INSPECTOR_HTML = `<!DOCTYPE html>
 
   <!-- URL Bar -->
   <div class="nav-bar">
-    <input id="urlInput" class="url-input" type="text" value="https://sprint-desk.com" placeholder="Enter URL to inspect..." />
+    <input id="urlInput" class="url-input" type="text" value="https://news.ycombinator.com" placeholder="Enter URL to inspect..." />
     <button id="navigateBtn" onclick="navigate()">⚡ Navigate & Inspect</button>
     <button class="btn-secondary" onclick="refreshDOM()">🔄 Reload Snapshot</button>
   </div>

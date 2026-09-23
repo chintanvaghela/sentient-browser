@@ -18,8 +18,8 @@ def test_python_client():
         page = client.new_page()
         print(f"Page created with ID: {page.id}")
 
-        print("Navigating to https://sprint-desk.com...")
-        snapshot = page.goto("https://sprint-desk.com")
+        print("Navigating to https://news.ycombinator.com...")
+        snapshot = page.goto("https://news.ycombinator.com")
         print(f"Navigation success! Title: '{snapshot.title}'")
         print(f"Pruned nodes: {snapshot.pruned_nodes_count}, Interactive: {snapshot.interactive_count}")
 
@@ -27,7 +27,7 @@ def test_python_client():
         assert snapshot.interactive_count > 0, "Expected interactive elements"
 
         print("\nTesting Autonomous Planner...")
-        result = page.solve("Find features of Time Tracker", max_steps=4)
+        result = page.solve("Find top story", max_steps=4)
         print(f"Autonomous Solve Success: {result.success}")
         print(f"Answer: {result.answer}")
         print(f"Steps taken: {result.steps_count} in {result.duration_ms}ms")
