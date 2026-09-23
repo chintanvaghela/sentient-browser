@@ -24,12 +24,12 @@ docs/
 
 | Document | Purpose |
 | :--- | :--- |
-| **[Architecture Overview](file:///home/chintan/Projects/AIBrowserRuntime/docs/architecture.md)** | Detailed high-level design, sub-systems, component boundaries, and end-to-end execution flow. |
-| **[Semantic DOM & Stable IDs Spec](file:///home/chintan/Projects/AIBrowserRuntime/docs/specs/semantic_dom_spec.md)** | Schema definition, DOM pruning rules, token-reduction strategies, and deterministic ID generation algorithm. |
-| **[Intent API Spec](file:///home/chintan/Projects/AIBrowserRuntime/docs/specs/intent_api_spec.md)** | Complete specification for agent action methods (`click`, `fill`, `hover`, `scroll`, etc.), pre-flight safety checks, and CDP dispatch. |
-| **[Smart Wait Engine Spec](file:///home/chintan/Projects/AIBrowserRuntime/docs/specs/wait_engine_spec.md)** | Multi-signal readiness detection (Network quiet, MutationObserver debounce, Animations, RAF flush, and Framework detection). |
-| **[State Diff & Event Stream Spec](file:///home/chintan/Projects/AIBrowserRuntime/docs/specs/state_diff_spec.md)** | Incremental state diffing schema, LLM-compact delta format (70–95% token reduction), and WebSocket PubSub API. |
-| **[Project Roadmap & Milestones](file:///home/chintan/Projects/AIBrowserRuntime/docs/roadmap.md)** | Phased delivery plan from Phase 1 (MVP) to Phase 4 (Distributed Cloud Cluster), with concrete acceptance criteria. |
+| **[Architecture Overview](./architecture.md)** | Detailed high-level design, sub-systems, component boundaries, and end-to-end execution flow. |
+| **[Semantic DOM & Stable IDs Spec](./specs/semantic_dom_spec.md)** | Schema definition, DOM pruning rules, token-reduction strategies, and deterministic ID generation algorithm. |
+| **[Intent API Spec](./specs/intent_api_spec.md)** | Complete specification for agent action methods (`click`, `fill`, `hover`, `scroll`, etc.), pre-flight safety checks, and CDP dispatch. |
+| **[Smart Wait Engine Spec](./specs/wait_engine_spec.md)** | Multi-signal readiness detection (Network quiet, MutationObserver debounce, Animations, RAF flush, and Framework detection). |
+| **[State Diff & Event Stream Spec](./specs/state_diff_spec.md)** | Incremental state diffing schema, LLM-compact delta format (70–95% token reduction), and WebSocket PubSub API. |
+| **[Project Roadmap & Milestones](./roadmap.md)** | Phased delivery plan from Phase 1 (MVP) to Phase 4 (Distributed Cloud Cluster), with concrete acceptance criteria. |
 
 ---
 

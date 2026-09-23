@@ -1,5 +1,11 @@
 # Sentient Browser 🌐🤖
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+[![CI](https://github.com/chintanvaghela/sentient-browser/actions/workflows/ci.yml/badge.svg)](https://github.com/chintanvaghela/sentient-browser/actions)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen.svg)](https://nodejs.org)
+[![MCP Compatible](https://img.shields.io/badge/MCP-Compatible-purple.svg)](https://modelcontextprotocol.io)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
+
 > **The AI-Native Browser Runtime for Autonomous AI Agents**  
 > Replace bloated HTML, brittle XPath/CSS selectors, and arbitrary `sleep()` loops with **pruned Semantic DOMs**, **deterministic settlement**, **incremental state diffs**, **native CDP events**, and an **autonomous goal planner**.
 
@@ -23,7 +29,7 @@
 ## 📦 Monorepo Architecture
 
 ```
-AIBrowserRuntime/
+sentient-browser/
 ├── packages/
 │   ├── core/           # @sentient/core: Runtime engine, CDP driver, WorkerPool & State Diff
 │   ├── sdk/            # @sentient/sdk: TypeScript/JavaScript WebSocket client SDK
@@ -49,8 +55,8 @@ AIBrowserRuntime/
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-org/AIBrowserRuntime.git
-cd AIBrowserRuntime
+git clone https://github.com/chintanvaghela/sentient-browser.git
+cd sentient-browser
 
 # Install all monorepo dependencies
 pnpm install
@@ -64,7 +70,7 @@ pnpm build
 ```bash
 pnpm test
 ```
-*Vitest suite with 100% pass rate across all 14 test suites (39/39 tests).*
+*Vitest suite with 100% pass rate across all 14 test suites (40/40 tests).*
 
 ---
 
@@ -83,7 +89,7 @@ sentient run https://news.ycombinator.com
 sentient repl https://news.ycombinator.com
 
 # Execute an autonomous objective
-sentient act https://news.ycombinator.com "Find features of Time Tracker"
+sentient act https://news.ycombinator.com "Find top story on Hacker News"
 ```
 
 ---
@@ -134,7 +140,7 @@ npx @sentient/mcp
   "mcpServers": {
     "sentient-browser": {
       "command": "node",
-      "args": ["/absolute/path/to/AIBrowserRuntime/packages/cli/dist/index.mjs", "mcp"]
+      "args": ["/absolute/path/to/sentient-browser/packages/cli/dist/index.js", "mcp"]
     }
   }
 }
@@ -146,7 +152,7 @@ npx @sentient/mcp
   "mcpServers": {
     "sentient-browser": {
       "command": "node",
-      "args": ["/absolute/path/to/AIBrowserRuntime/packages/cli/dist/index.mjs", "mcp"]
+      "args": ["/absolute/path/to/sentient-browser/packages/cli/dist/index.js", "mcp"]
     }
   }
 }
@@ -183,7 +189,7 @@ async function main() {
   console.log(`Loaded: ${snapshot.title} (${snapshot.interactiveCount} targets)`);
 
   // Solve a goal autonomously
-  const result = await page.solve('Find features of Time Tracker');
+  const result = await page.solve('Find top story on Hacker News');
   console.log('Result:', result.answer);
 
   // Rollback action
@@ -216,7 +222,7 @@ with SyncSentientClient("ws://127.0.0.1:9222") as client:
     print(f"Title: {snapshot.title}")
 
     # Solve goal autonomously
-    result = page.solve("Find features of Time Tracker")
+    result = page.solve("Find top story on Hacker News")
     print(f"Answer: {result.answer} (took {result.duration_ms}ms)")
 
     # Rollback
@@ -235,7 +241,7 @@ async def main():
     page = await client.new_page()
 
     snapshot = await page.goto("https://news.ycombinator.com")
-    diff = await page.click("time_tracker_button")
+    diff = await page.click("comments_link")
     print("Diff:", diff.compact)
 
     await page.close()
@@ -248,7 +254,7 @@ asyncio.run(main())
 
 ## 🧪 Playwright & Vitest Test Runner Adapter (`@sentient/test`)
 
-Drop Sentient's deterministic settlement, stable semantic IDs, and incremental state diffs directly into existing Playwright or Vitest test suites (e.g. Scrum/HyperScale, ExampleApp) with zero flakiness:
+Drop Sentient's deterministic settlement, stable semantic IDs, and incremental state diffs directly into existing Playwright or Vitest test suites with zero flakiness:
 
 ```typescript
 import { test, expect } from '@playwright/test';
@@ -260,16 +266,16 @@ registerSentientMatchers(expect);
 test('Login & create task with zero flakiness', async ({ page }) => {
   const sentientPage = await wrapPlaywrightPage(page);
 
-  await page.goto('https://news.ycombinator.com/login');
+  await page.goto('https://example.com/login');
   await expect(sentientPage).toSettle();
 
   // Type without CSS selector guessing
-  await sentientFill(page, 'Enter your email', 'owner@scrum.com');
-  await sentientFill(page, 'Enter your password', 'Password!123');
+  await sentientFill(page, 'Enter your email', 'user@example.com');
+  await sentientFill(page, 'Enter your password', 'Password123!');
 
   // Click submit and verify state diff immediately
   const diff = await sentientClick(page, 'Sign in');
-  expect(diff).toHaveAdded('Phoenix Redesign');
+  expect(diff).toHaveAdded('Dashboard Overview');
 });
 ```
 
@@ -326,4 +332,4 @@ node examples/dsa_benchmark.mjs
 
 ## 📜 License
 
-MIT © Sentient Browser Contributors.
+[MIT License](./LICENSE) © Sentient Browser Contributors.
