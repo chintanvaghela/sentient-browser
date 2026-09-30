@@ -1,6 +1,6 @@
 {
   "name": "@sentient-browser/test",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Test runner adapter and custom matchers for Playwright and Vitest",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
