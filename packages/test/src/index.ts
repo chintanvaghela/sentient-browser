@@ -9,7 +9,7 @@ export * from './playwright.js';
  * @example
  * ```typescript
  * import { expect } from 'vitest';
- * import { registerSentientMatchers } from '@sentient/test';
+ * import { registerSentientMatchers } from '@sentient-browser/test';
  *
  * registerSentientMatchers(expect);
  * ```

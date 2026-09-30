@@ -1,5 +1,5 @@
 {
-  "name": "@sentient/core",
+  "name": "@sentient-browser/core",
   "version": "0.1.0",
   "description": "Core runtime engine and CDP controller for Sentient Browser",
   "main": "./dist/index.js",

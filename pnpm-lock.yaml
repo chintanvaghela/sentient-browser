@@ -8,6 +8,15 @@ importers:
 
   .:
     devDependencies:
+      '@sentient-browser/core':
+        specifier: workspace:*
+        version: link:packages/core
+      '@sentient-browser/mcp':
+        specifier: workspace:*
+        version: link:packages/mcp
+      '@sentient-browser/sdk':
+        specifier: workspace:*
+        version: link:packages/sdk
       '@types/node':
         specifier: ^22.8.1
         version: 22.20.4
@@ -23,13 +32,13 @@ importers:
 
   packages/cli:
     dependencies:
-      '@sentient/core':
+      '@sentient-browser/core':
         specifier: workspace:*
         version: link:../core
-      '@sentient/mcp':
+      '@sentient-browser/mcp':
         specifier: workspace:*
         version: link:../mcp
-      '@sentient/sdk':
+      '@sentient-browser/sdk':
         specifier: workspace:*
         version: link:../sdk
       commander:
@@ -51,10 +60,10 @@ importers:
 
   packages/mcp:
     dependencies:
-      '@sentient/core':
+      '@sentient-browser/core':
         specifier: workspace:*
         version: link:../core
-      '@sentient/sdk':
+      '@sentient-browser/sdk':
         specifier: workspace:*
         version: link:../sdk
     devDependencies:
@@ -64,7 +73,7 @@ importers:
 
   packages/sdk:
     dependencies:
-      '@sentient/core':
+      '@sentient-browser/core':
         specifier: workspace:*
         version: link:../core
       ws:
@@ -77,10 +86,10 @@ importers:
 
   packages/test:
     dependencies:
-      '@sentient/core':
+      '@sentient-browser/core':
         specifier: workspace:*
         version: link:../core
-      '@sentient/sdk':
+      '@sentient-browser/sdk':
         specifier: workspace:*
         version: link:../sdk
       playwright-core:

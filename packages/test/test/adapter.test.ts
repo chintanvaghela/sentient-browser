@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { chromium, type Browser, type Page } from 'playwright-core';
-import { findCachedChromiumExecutable } from '@sentient/core';
+import { findCachedChromiumExecutable } from '@sentient-browser/core';
 import {
   registerSentientMatchers,
   wrapPlaywrightPage,
@@ -25,7 +25,7 @@ declare module 'vitest' {
   }
 }
 
-describe('@sentient/test Playwright Adapter & Matchers', () => {
+describe('@sentient-browser/test Playwright Adapter & Matchers', () => {
   let browser: Browser;
   let page: Page;
 

@@ -1,5 +1,5 @@
 {
-  "name": "@sentient/cli",
+  "name": "@sentient-browser/cli",
   "version": "0.1.0",
   "description": "Command line interface and REPL for Sentient Browser",
   "main": "./dist/index.js",
@@ -46,9 +46,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@sentient/core": "workspace:*",
-    "@sentient/mcp": "workspace:*",
-    "@sentient/sdk": "workspace:*",
+    "@sentient-browser/core": "workspace:*",
+    "@sentient-browser/mcp": "workspace:*",
+    "@sentient-browser/sdk": "workspace:*",
     "commander": "^12.1.0"
   }
 }

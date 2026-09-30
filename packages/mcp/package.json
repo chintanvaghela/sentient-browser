@@ -1,5 +1,5 @@
 {
-  "name": "@sentient/mcp",
+  "name": "@sentient-browser/mcp",
   "version": "0.1.0",
   "description": "Model Context Protocol (MCP) Server for Sentient Browser",
   "main": "./dist/index.js",
@@ -47,8 +47,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@sentient/core": "workspace:*",
-    "@sentient/sdk": "workspace:*"
+    "@sentient-browser/core": "workspace:*",
+    "@sentient-browser/sdk": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.13.4"

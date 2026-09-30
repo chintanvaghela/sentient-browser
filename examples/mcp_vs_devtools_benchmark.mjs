@@ -1,5 +1,5 @@
-import { ChromiumManager } from '@sentient/core';
-import { SentientMcpServer } from '@sentient/mcp';
+import { ChromiumManager } from '@sentient-browser/core';
+import { SentientMcpServer } from '@sentient-browser/mcp';
 
 function estimateTokens(text) {
   return Math.max(1, Math.round(text.length / 3.8));

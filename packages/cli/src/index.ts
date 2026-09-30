@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
 import readline from 'node:readline';
-import { SentientServer, ChromiumManager } from '@sentient/core';
+import { SentientServer, ChromiumManager } from '@sentient-browser/core';
 
 const program = new Command();
 
@@ -212,7 +212,7 @@ program
   .option('-u, --url <url>', 'Sentient Browser daemon WebSocket URL', 'ws://127.0.0.1:9222')
   .option('--headful', 'Run with visible browser window if spinning up embedded instance', false)
   .action(async (options) => {
-    const { SentientMcpServer } = await import('@sentient/mcp');
+    const { SentientMcpServer } = await import('@sentient-browser/mcp');
     const server = new SentientMcpServer({
       daemonUrl: options.url,
       headless: !options.headful

@@ -1,4 +1,4 @@
-import { SentientBrowser } from '@sentient/sdk';
+import { SentientBrowser } from '@sentient-browser/sdk';
 
 async function runParallelResearch() {
   console.log('🚀 Starting Sentient Browser Parallel Research Agent...\n');

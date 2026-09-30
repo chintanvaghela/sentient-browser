@@ -1,4 +1,4 @@
-import type { StateDiff, SemanticSnapshot, SentientPage, NodeDelta } from '@sentient/core';
+import type { StateDiff, SemanticSnapshot, SentientPage, NodeDelta } from '@sentient-browser/core';
 
 export interface MatcherResult {
   pass: boolean;

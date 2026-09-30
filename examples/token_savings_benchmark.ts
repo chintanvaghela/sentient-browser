@@ -1,4 +1,4 @@
-import { SentientBrowser } from '@sentient/sdk';
+import { SentientBrowser } from '@sentient-browser/sdk';
 
 async function runBenchmark() {
   console.log('🚀 Starting Sentient Browser Token Savings & Intent Benchmark...\n');

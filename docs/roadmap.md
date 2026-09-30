@@ -23,7 +23,7 @@ This document details the development phases, technical milestones, deliverables
 ### Milestones & Deliverables
 
 #### Milestone 1.1: Project Scaffolding & Chromium CDP Manager
-- [x] Initialize pnpm monorepo (`@sentient/core`, `@sentient/sdk`, `@sentient/cli`).
+- [x] Initialize pnpm monorepo (`@sentient-browser/core`, `@sentient-browser/sdk`, `@sentient-browser/cli`).
 - [x] Implement `ChromiumManager` using Playwright-core & direct CDP session attachment.
 - [x] Support `chromium_headless_shell` (low-resource mode) and standard headful mode for debugging.
 - [x] Ephemeral profile directory isolation and cleanup.
@@ -59,8 +59,8 @@ This document details the development phases, technical milestones, deliverables
 - [x] Publish real-time events (`event.domDiff`, `event.agentStep`).
 
 #### Milestone 1.7: Agent SDK & CLI Runner
-- [x] Build `@sentient/sdk` TypeScript client with simple async/await API.
-- [x] Build `@sentient/cli` with `sentient serve`, `run <url>`, `repl <url>`, and `act <url> "<goal>"`.
+- [x] Build `@sentient-browser/sdk` TypeScript client with simple async/await API.
+- [x] Build `@sentient-browser/cli` with `sentient serve`, `run <url>`, `repl <url>`, and `act <url> "<goal>"`.
 - [x] Build `sentient-browser` Python SDK (`packages/sdk-python`) with async and sync APIs.
 - [x] E2E test suite running real-world login, diffing, and goal-solving scenarios.
 

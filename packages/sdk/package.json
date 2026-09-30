@@ -1,5 +1,5 @@
 {
-  "name": "@sentient/sdk",
+  "name": "@sentient-browser/sdk",
   "version": "0.1.0",
   "description": "Agent client SDK for Sentient Browser",
   "main": "./dist/index.js",
@@ -43,7 +43,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@sentient/core": "workspace:*",
+    "@sentient-browser/core": "workspace:*",
     "ws": "^8.18.0"
   },
   "devDependencies": {

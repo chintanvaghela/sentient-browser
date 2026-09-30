@@ -39,9 +39,9 @@
     "typecheck": "pnpm --filter \"./packages/*\" run typecheck"
   },
   "devDependencies": {
-    "@sentient/core": "workspace:*",
-    "@sentient/mcp": "workspace:*",
-    "@sentient/sdk": "workspace:*",
+    "@sentient-browser/core": "workspace:*",
+    "@sentient-browser/mcp": "workspace:*",
+    "@sentient-browser/sdk": "workspace:*",
     "@types/node": "^22.8.1",
     "tsup": "^8.3.5",
     "typescript": "^5.6.3",

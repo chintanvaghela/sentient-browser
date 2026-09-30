@@ -1,4 +1,4 @@
-import { computeNodeFingerprint, SpatialGridIndex, MaxHeap, extractTopK } from '@sentient/core';
+import { computeNodeFingerprint, SpatialGridIndex, MaxHeap, extractTopK } from '@sentient-browser/core';
 
 function benchmark(name, fn, iterations) {
   const start = performance.now();

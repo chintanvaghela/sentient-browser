@@ -1,9 +1,9 @@
 export * from './client.js';
-export { ChromiumManager, SentientPage, type LaunchOptions } from '@sentient/core';
-export { WorkerPool, type PoolOptions, type PoolStats, type TaskFunction, type QueuedTask } from '@sentient/core';
-export type { SemanticSnapshot, SemanticNode, StateDiff, NodeDelta } from '@sentient/core';
+export { ChromiumManager, SentientPage, type LaunchOptions } from '@sentient-browser/core';
+export { WorkerPool, type PoolOptions, type PoolStats, type TaskFunction, type QueuedTask } from '@sentient-browser/core';
+export type { SemanticSnapshot, SemanticNode, StateDiff, NodeDelta } from '@sentient-browser/core';
 
-import { ChromiumManager, LaunchOptions, WorkerPool, PoolOptions } from '@sentient/core';
+import { ChromiumManager, LaunchOptions, WorkerPool, PoolOptions } from '@sentient-browser/core';
 
 /**
  * Convenient embedded entrypoint for running Sentient Browser directly in-process.

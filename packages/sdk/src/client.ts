@@ -1,5 +1,5 @@
 import WebSocket from 'ws';
-import type { SemanticSnapshot, StateDiff, ClickOptions, FillOptions, ScrollOptions } from '@sentient/core';
+import type { SemanticSnapshot, StateDiff, ClickOptions, FillOptions, ScrollOptions } from '@sentient-browser/core';
 
 export interface ClientOptions {
   url?: string;

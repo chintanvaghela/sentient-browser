@@ -31,12 +31,12 @@
 ```
 sentient-browser/
 ├── packages/
-│   ├── core/           # @sentient/core: Runtime engine, CDP driver, WorkerPool & State Diff
-│   ├── sdk/            # @sentient/sdk: TypeScript/JavaScript WebSocket client SDK
+│   ├── core/           # @sentient-browser/core: Runtime engine, CDP driver, WorkerPool & State Diff
+│   ├── sdk/            # @sentient-browser/sdk: TypeScript/JavaScript WebSocket client SDK
 │   ├── sdk-python/     # sentient-browser: Python client SDK (Async & Sync)
-│   ├── mcp/            # @sentient/mcp: Official Model Context Protocol (MCP) server
-│   ├── cli/            # @sentient/cli: Executable CLI (sentient serve, run, act, repl, mcp)
-│   └── test/           # @sentient/test: Playwright & Vitest test runner adapter & matchers
+│   ├── mcp/            # @sentient-browser/mcp: Official Model Context Protocol (MCP) server
+│   ├── cli/            # @sentient-browser/cli: Executable CLI (sentient serve, run, act, repl, mcp)
+│   └── test/           # @sentient-browser/test: Playwright & Vitest test runner adapter & matchers
 ├── docs/               # Architecture specs and technical roadmaps
 └── examples/           # Integration scripts & demonstrations
 ```
@@ -76,7 +76,7 @@ pnpm test
 
 ## 🖥️ Command Line Interface (CLI)
 
-The `@sentient/cli` package provides quick access to browser automation and inspection:
+The `@sentient-browser/cli` package provides quick access to browser automation and inspection:
 
 ```bash
 # Start the WebSocket server and visual Web Inspector
@@ -128,7 +128,7 @@ Connect any LLM agent (Claude Desktop, Cursor, Antigravity, Windsurf) directly t
 sentient mcp
 
 # Option 2: Standalone executable
-npx @sentient/mcp
+npx @sentient-browser/mcp
 ```
 *Note: If `sentient serve --port 9222` is running, the MCP server connects to it automatically so you can watch your agent's actions in real-time in the Web Inspector at `http://localhost:9222/`. If no daemon is running, it spins up an embedded headless browser seamlessly.*
 
@@ -175,7 +175,7 @@ npx @sentient/mcp
 ## 💻 TypeScript SDK Usage
 
 ```typescript
-import { SentientClient } from '@sentient/sdk';
+import { SentientClient } from '@sentient-browser/sdk';
 
 async function main() {
   const client = await SentientClient.connect({ url: 'ws://127.0.0.1:9222' });
@@ -252,13 +252,13 @@ asyncio.run(main())
 
 ---
 
-## 🧪 Playwright & Vitest Test Runner Adapter (`@sentient/test`)
+## 🧪 Playwright & Vitest Test Runner Adapter (`@sentient-browser/test`)
 
 Drop Sentient's deterministic settlement, stable semantic IDs, and incremental state diffs directly into existing Playwright or Vitest test suites with zero flakiness:
 
 ```typescript
 import { test, expect } from '@playwright/test';
-import { registerSentientMatchers, sentientClick, sentientFill, wrapPlaywrightPage } from '@sentient/test';
+import { registerSentientMatchers, sentientClick, sentientFill, wrapPlaywrightPage } from '@sentient-browser/test';
 
 // Register custom matchers (toSettle, toHaveAdded, toHaveUpdated, toHaveSemanticText)
 registerSentientMatchers(expect);
@@ -286,7 +286,7 @@ test('Login & create task with zero flakiness', async ({ page }) => {
 Scale testing and autonomous scraping across multiple concurrent browser tabs/contexts with built-in concurrency gating and automatic worker recycling:
 
 ```typescript
-import { WorkerPool } from '@sentient/core';
+import { WorkerPool } from '@sentient-browser/core';
 
 const pool = new WorkerPool(undefined, {
   maxConcurrency: 4,      // 4 concurrent tabs/contexts

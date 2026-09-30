@@ -9,7 +9,7 @@ import {
   ScrollOptions,
   StateDiff,
   SemanticSnapshot
-} from '@sentient/core';
+} from '@sentient-browser/core';
 
 // Cache of wrapped SentientPage instances by Playwright page
 const pageWrapperMap = new WeakMap<Page, SentientPage>();

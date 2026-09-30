@@ -1,5 +1,5 @@
 {
-  "name": "@sentient/test",
+  "name": "@sentient-browser/test",
   "version": "0.1.0",
   "description": "Test runner adapter and custom matchers for Playwright and Vitest",
   "main": "./dist/index.js",
@@ -45,8 +45,8 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@sentient/core": "workspace:*",
-    "@sentient/sdk": "workspace:*",
+    "@sentient-browser/core": "workspace:*",
+    "@sentient-browser/sdk": "workspace:*",
     "playwright-core": "^1.48.2"
   },
   "peerDependencies": {

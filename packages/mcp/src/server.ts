@@ -1,6 +1,6 @@
 import readline from 'node:readline';
-import { ChromiumManager, type SentientPage, type SemanticSnapshot } from '@sentient/core';
-import { SentientClient, type RemoteSentientPage } from '@sentient/sdk';
+import { ChromiumManager, type SentientPage, type SemanticSnapshot } from '@sentient-browser/core';
+import { SentientClient, type RemoteSentientPage } from '@sentient-browser/sdk';
 import { SENTIENT_TOOLS } from './tools.js';
 
 export interface McpServerOptions {

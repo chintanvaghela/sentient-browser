@@ -10,7 +10,7 @@ This document describes the architectural design, component boundaries, and data
 graph TD
     subgraph Agent Environment
         AI[Autonomous AI Agent / LLM]
-        SDK["Sentient Client SDK (@sentient/sdk)"]
+        SDK["Sentient Client SDK (@sentient-browser/sdk)"]
         AI <-->|Method Calls / Stream Subscriptions| SDK
     end
 
@@ -58,7 +58,7 @@ graph TD
 
 ## 2. Core Architectural Components
 
-### 2.1. Chromium Manager & CDP Controller (`@sentient/core/browser`)
+### 2.1. Chromium Manager & CDP Controller (`@sentient-browser/core/browser`)
 * **Role**: Manages the lifecycle of Chromium processes and browser contexts.
 * **Key Responsibilities**:
   * Spawns Chromium using `chromium_headless_shell` or standard headless/headful mode.
@@ -68,7 +68,7 @@ graph TD
 
 ---
 
-### 2.2. Injected Runtime Context (`@sentient/core/browser/injected`)
+### 2.2. Injected Runtime Context (`@sentient-browser/core/browser/injected`)
 * **Role**: A lightweight script running within the browser page in an **isolated JavaScript world**.
 * **Key Responsibilities**:
   * **Isolation**: Cannot be detected, modified, or polluted by the target website's scripts.
@@ -79,7 +79,7 @@ graph TD
 
 ---
 
-### 2.3. Semantic DOM & Stable ID Engine (`@sentient/core/semantic`)
+### 2.3. Semantic DOM & Stable ID Engine (`@sentient-browser/core/semantic`)
 * **Role**: Transforms noisy raw HTML into a clean, concise, token-efficient semantic tree.
 * **Key Responsibilities**:
   * **Pruning Noise**: Filters out non-interactive wrappers (`div`, `span`, `section`), decorative SVGs, hidden elements (`display: none`, `visibility: hidden`, `aria-hidden="true"`), and empty elements.
@@ -88,7 +88,7 @@ graph TD
 
 ---
 
-### 2.4. Incremental State Diff Engine (`@sentient/core/diff`)
+### 2.4. Incremental State Diff Engine (`@sentient-browser/core/diff`)
 * **Role**: Minimizes LLM token consumption by computing and streaming deltas between browser states.
 * **Key Responsibilities**:
   * Maintains an in-memory snapshot of the previous semantic tree.
@@ -102,7 +102,7 @@ graph TD
 
 ---
 
-### 2.5. Smart Waiting Engine (`@sentient/core/wait`)
+### 2.5. Smart Waiting Engine (`@sentient-browser/core/wait`)
 * **Role**: Guarantees deterministic settlement of the page before returning control to the agent, eliminating flaky `sleep(ms)` calls.
 * **Key Responsibilities**:
   * Multi-signal settlement evaluation:
@@ -115,7 +115,7 @@ graph TD
 
 ---
 
-### 2.6. Intent Action Engine (`@sentient/core/intent`)
+### 2.6. Intent Action Engine (`@sentient-browser/core/intent`)
 * **Role**: Translates natural agent goals into reliable, low-level CDP dispatch events.
 * **Key Responsibilities**:
   * Supports high-level intent actions: `click`, `doubleClick`, `fill`, `type`, `hover`, `select`, `check`, `scroll`.
@@ -130,7 +130,7 @@ graph TD
 
 ---
 
-### 2.7. Event Stream & WebSocket Server (`@sentient/core/server`)
+### 2.7. Event Stream & WebSocket Server (`@sentient-browser/core/server`)
 * **Role**: Provides the bidirectional gateway for AI agents to connect to the runtime.
 * **Key Responsibilities**:
   * Exposes JSON-RPC 2.0 endpoints for synchronous commands (`goto`, `click`, `getSemanticDOM`).
@@ -144,16 +144,16 @@ graph TD
 
 ---
 
-### 2.8. Sentient Agent SDKs (`@sentient/sdk` & `packages/sdk-python`)
+### 2.8. Sentient Agent SDKs (`@sentient-browser/sdk` & `packages/sdk-python`)
 * **Role**: The clean, ergonomic client libraries imported by AI agent frameworks (Node.js & Python).
 * **Key Responsibilities**:
-  * **TypeScript**: Async/await methods, PubSub diff and agent step subscriptions (`@sentient/sdk`).
+  * **TypeScript**: Async/await methods, PubSub diff and agent step subscriptions (`@sentient-browser/sdk`).
   * **Python**: Dual `SentientClient` (asyncio) and `SyncSentientClient` (blocking scripts / Jupyter notebooks / LangChain / CrewAI).
   * Strong typing for semantic nodes, snapshots, state diffs, and planner results.
 
 ---
 
-### 2.9. Autonomous Goal Planner (`@sentient/core/agent`)
+### 2.9. Autonomous Goal Planner (`@sentient-browser/core/agent`)
 * **Role**: Orchestrates autonomous goal resolution directly from natural language objectives.
 * **Key Responsibilities**:
   * Evaluates current pruned Semantic DOM against objective.
@@ -163,7 +163,7 @@ graph TD
 
 ---
 
-### 2.10. Action Journal & Rollback Engine (`@sentient/core/intent/history`)
+### 2.10. Action Journal & Rollback Engine (`@sentient-browser/core/intent/history`)
 * **Role**: Maintains a reversibility stack for browser interactions.
 * **Key Responsibilities**:
   * Logs inverse operations for executed actions:

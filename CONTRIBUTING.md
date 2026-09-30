@@ -10,7 +10,7 @@ Thank you for your interest in contributing to **Sentient Browser**! We are buil
 
 - **Node.js**: `v20.x` or `v22.x` (enforced via `.nvmrc` and `engines`)
 - **pnpm**: `v9.x` (`corepack enable` or `npm install -g pnpm`)
-- **Python**: `3.9+` (optional, for `@sentient/sdk-python`)
+- **Python**: `3.9+` (optional, for `@sentient-browser/sdk-python`)
 
 ### Getting Started
 
@@ -39,12 +39,12 @@ pnpm test
 ```
 sentient-browser/
 ├── packages/
-│   ├── core/           # @sentient/core: Runtime engine, CDP driver, state diffing & settlement
-│   ├── sdk/            # @sentient/sdk: TypeScript WebSocket client SDK & embedded runner
+│   ├── core/           # @sentient-browser/core: Runtime engine, CDP driver, state diffing & settlement
+│   ├── sdk/            # @sentient-browser/sdk: TypeScript WebSocket client SDK & embedded runner
 │   ├── sdk-python/     # sentient-browser: Python client SDK (Async & Sync)
-│   ├── mcp/            # @sentient/mcp: Official Model Context Protocol (MCP) server
-│   ├── cli/            # @sentient/cli: CLI binary (sentient serve, run, act, repl, mcp)
-│   └── test/           # @sentient/test: Playwright & Vitest test runner adapter & matchers
+│   ├── mcp/            # @sentient-browser/mcp: Official Model Context Protocol (MCP) server
+│   ├── cli/            # @sentient-browser/cli: CLI binary (sentient serve, run, act, repl, mcp)
+│   └── test/           # @sentient-browser/test: Playwright & Vitest test runner adapter & matchers
 ├── docs/               # Architecture specs and technical roadmaps
 └── examples/           # Integration scripts & demonstrations
 ```
