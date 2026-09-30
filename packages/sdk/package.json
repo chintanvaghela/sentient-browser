@@ -12,6 +12,31 @@
       "require": "./dist/index.js"
     }
   },
+  "license": "MIT",
+  "author": {
+    "name": "Chintan Vaghela",
+    "url": "https://github.com/chintanvaghela"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chintanvaghela/sentient-browser.git",
+    "directory": "packages/sdk"
+  },
+  "homepage": "https://github.com/chintanvaghela/sentient-browser#readme",
+  "bugs": {
+    "url": "https://github.com/chintanvaghela/sentient-browser/issues"
+  },
+  "keywords": [
+    "browser",
+    "sdk",
+    "ai",
+    "agent",
+    "automation",
+    "client"
+  ],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --dts",
     "dev": "tsup src/index.ts --format esm,cjs --dts --watch",

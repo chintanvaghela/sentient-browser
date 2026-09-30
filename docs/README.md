@@ -11,6 +11,7 @@ docs/
 ├── README.md                      # This file (Documentation Index & Overview)
 ├── architecture.md               # System Architecture, Components & Data Flows
 ├── roadmap.md                    # Phase-by-phase Milestones & Acceptance Criteria
+├── srd.md                        # Software Requirements Document (MVP Vision)
 └── specs/
     ├── semantic_dom_spec.md       # Semantic DOM schema, filtering rules & Stable IDs
     ├── intent_api_spec.md         # Intent API methods, target resolution & pre-flight checks

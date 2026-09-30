@@ -15,6 +15,32 @@
   "bin": {
     "sentient-mcp": "./dist/index.js"
   },
+  "license": "MIT",
+  "author": {
+    "name": "Chintan Vaghela",
+    "url": "https://github.com/chintanvaghela"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chintanvaghela/sentient-browser.git",
+    "directory": "packages/mcp"
+  },
+  "homepage": "https://github.com/chintanvaghela/sentient-browser#readme",
+  "bugs": {
+    "url": "https://github.com/chintanvaghela/sentient-browser/issues"
+  },
+  "keywords": [
+    "browser",
+    "mcp",
+    "model-context-protocol",
+    "ai",
+    "agent",
+    "claude",
+    "cursor"
+  ],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsup src/index.ts --format esm,cjs --dts",
     "dev": "tsup src/index.ts --format esm,cjs --dts --watch",

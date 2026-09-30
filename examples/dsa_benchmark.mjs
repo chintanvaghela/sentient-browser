@@ -1,6 +1,4 @@
-import { computeNodeFingerprint } from '../packages/core/dist/index.mjs';
-import { SpatialGridIndex } from '../packages/core/dist/index.mjs';
-import { MaxHeap, extractTopK } from '../packages/core/dist/index.mjs';
+import { computeNodeFingerprint, SpatialGridIndex, MaxHeap, extractTopK } from '@sentient/core';
 
 function benchmark(name, fn, iterations) {
   const start = performance.now();

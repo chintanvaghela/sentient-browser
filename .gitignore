@@ -13,3 +13,14 @@ __pycache__/
 .pytest_cache/
 .codebase-memory/
 .agents/
+
+# Environment variables
+.env
+.env.*
+.env.local
+!.env.example
+
+# Virtual environments
+.venv/
+venv/
+env/

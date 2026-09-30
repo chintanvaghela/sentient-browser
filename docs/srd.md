@@ -16,7 +16,7 @@
 
 # Author
 
-Chintan
+Sentient Browser Contributors
 
 ---
 

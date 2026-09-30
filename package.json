@@ -4,8 +4,30 @@
   "type": "module",
   "private": true,
   "description": "An AI-native browser runtime designed for autonomous AI agents",
-  "author": "Chintan",
+  "author": {
+    "name": "Chintan Vaghela",
+    "url": "https://github.com/chintanvaghela"
+  },
   "license": "MIT",
+  "homepage": "https://github.com/chintanvaghela/sentient-browser#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chintanvaghela/sentient-browser.git"
+  },
+  "bugs": {
+    "url": "https://github.com/chintanvaghela/sentient-browser/issues"
+  },
+  "keywords": [
+    "browser",
+    "ai",
+    "agent",
+    "cdp",
+    "mcp",
+    "model-context-protocol",
+    "autonomous-agent",
+    "semantic-dom",
+    "playwright"
+  ],
   "engines": {
     "node": ">=20.0.0",
     "pnpm": ">=9.0.0"
@@ -17,9 +39,13 @@
     "typecheck": "pnpm --filter \"./packages/*\" run typecheck"
   },
   "devDependencies": {
+    "@sentient/core": "workspace:*",
+    "@sentient/mcp": "workspace:*",
+    "@sentient/sdk": "workspace:*",
     "@types/node": "^22.8.1",
     "tsup": "^8.3.5",
     "typescript": "^5.6.3",
     "vitest": "^2.1.4"
   }
 }
+
